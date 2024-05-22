@@ -1,5 +1,9 @@
 #include "ImgMagick.h"
+#include "CopyPixels.h"
+#include "Tile.h"
 #include <time.h>
+
+using namespace std;
 
 class SourceKml
 {
@@ -12,15 +16,13 @@ public:
 	clock_t lastAccess;
 	int maxZoomVisible;
 	string projType;
+	CopyPixels* copyPixels;
 
-	SourceKml()
-	{
-		lastAccess = 0;
-		maxZoomVisible = -1;
-		projType = "M";
-	}
-	virtual ~SourceKml() {}
-	
+	SourceKml();
+	virtual ~SourceKml();
+
+	void CreateCopyPixelsObj();
+
 private:
 	SourceKml(const SourceKml &a) = delete;
 	SourceKml &operator=(const SourceKml &a) = delete;

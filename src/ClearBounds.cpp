@@ -4,7 +4,6 @@
 #include "SourceKml.h"
 #include "ReadDelimitedFile.h"
 #include "GetBounds.h"
-#include "CopyPixels.h"
 #include "ProgramOptions.h"
 
 #include <memory>

@@ -9,7 +9,6 @@
 #include "OSTN02Perl.h"
 #include "ReadDelimitedFile.h"
 #include "GetBounds.h"
-#include "CopyPixels.h"
 #include "SourceKml.h"
 #include "ProgramOptions.h"
 #include <sys/stat.h>
@@ -425,11 +424,11 @@ int TileJob::Render()
 		// GetResizedSubimage(inter,dst,temp);
 		// cout << "c" << endl;
 
-		unique_ptr<CopyPixels> mask(CopyPixels::Create(srcKml.projType.c_str()));
-		for (unsigned int i = 0; i < srcKml.bounds.size(); i++)
-			mask->UpdateBoundingBox(srcKml.bounds[i].c_str());
-		mask->Copy(tile, outImg, this->dst, this->mergeTiles);
-
+		if( srcKml.copyPixels ) {
+			for (unsigned int i = 0; i < srcKml.bounds.size(); i++)
+				srcKml.copyPixels->UpdateBoundingBox(srcKml.bounds[i].c_str());
+			srcKml.copyPixels->Copy(tile, outImg, this->dst, this->mergeTiles);
+		}
 	} // End of copy KML source
 
 // Get OS grid positions of tile corners
@@ -651,6 +650,8 @@ int main(int argc, char **argv)
 			last.projType = "M";
 			cout << last.projType << " : " << tl.str() << "," << br.str() << endl;
 		}
+
+		last.CreateCopyPixelsObj();
 	}
 
 	cout << "Input files bounding box:" << endl;

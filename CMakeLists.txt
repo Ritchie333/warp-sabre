@@ -78,6 +78,7 @@ add_executable(gentiles
     src/ProgramOptions.cpp
     src/ReadDelimitedFile.cpp
     src/ReadKmlFile.cpp
+    src/SourceKml.cpp
     src/StringUtils.cpp
     src/Tile.cpp
     src/gbos1936/Gbos1936.cpp
@@ -85,12 +86,14 @@ add_executable(gentiles
 
 add_executable(cleartiles
     src/ClearTiles.cpp
+    src/CopyPixels.cpp
     src/GetBounds.cpp
     src/ImageWarpByFunc.cpp
     src/ImgMagick.cpp
     src/ProgramOptions.cpp
     src/ReadDelimitedFile.cpp
     src/ReadKmlFile.cpp
+    src/SourceKml.cpp
     src/StringUtils.cpp
     src/Tile.cpp
     src/gbos1936/Gbos1936.cpp
@@ -105,6 +108,7 @@ add_executable(clearbounds
     src/ProgramOptions.cpp
     src/ReadDelimitedFile.cpp
     src/ReadKmlFile.cpp
+    src/SourceKml.cpp
     src/StringUtils.cpp
     src/Tile.cpp
     src/gbos1936/Gbos1936.cpp
