@@ -2,6 +2,7 @@
 #include "CopyPixels.h"
 #include "Tile.h"
 #include <time.h>
+#include <string>
 
 using namespace std;
 
