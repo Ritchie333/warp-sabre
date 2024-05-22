@@ -16,4 +16,6 @@ SourceKml::~SourceKml()
 void SourceKml::CreateCopyPixelsObj()
 {
     copyPixels = CopyPixels::Create( projType.c_str() );
+    for (unsigned int i = 0; i < bounds.size(); i++)
+		copyPixels->UpdateBoundingBox( bounds[ i ].c_str() );
 }

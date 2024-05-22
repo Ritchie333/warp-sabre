@@ -650,8 +650,6 @@ int main(int argc, char **argv)
 		}
 
 		last.CreateCopyPixelsObj();
-		for (unsigned int i = 0; i < last.bounds.size(); i++)
-			last.copyPixels->UpdateBoundingBox(last.bounds[i].c_str());
 	}
 
 	cout << "Input files bounding box:" << endl;
