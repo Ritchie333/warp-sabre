@@ -131,7 +131,7 @@ void DrawMarker(class ImgMagick &img, double x, double y)
 
 boost::mutex accessTimeLock;
 
-int RequestTileLoading(vector<class SourceKml> &src, class SourceKml &toLoad, int maxTilesLoaded)
+int RequestTileLoading(class SourceKml*src, const size_t size, class SourceKml &toLoad, int maxTilesLoaded)
 {
 	// Touch this timer to prevent it being unloaded straight away
 	accessTimeLock.lock(); // Reset timer
@@ -145,7 +145,7 @@ int RequestTileLoading(vector<class SourceKml> &src, class SourceKml &toLoad, in
 
 	// Count how many tiles in memory
 	int count = 0;
-	for (unsigned int i = 0; i < src.size(); i++)
+	for (unsigned int i = 0; i < size; i++)
 		if (src[i].image.Ready())
 			count++;
 	cout << "Currently " << count << " tiles in memory" << endl;
@@ -162,9 +162,9 @@ int RequestTileLoading(vector<class SourceKml> &src, class SourceKml &toLoad, in
 		}
 
 		// Need to unload a tile. Find tile that has not been recently used.
-		// cout << "count " << count << ", src size " << src.size() << endl;
+		// cout << "count " << count << ", src size " << size << endl;
 		accessTimeLock.lock();
-		for (unsigned int i = 0; i < src.size(); i++)
+		for (unsigned int i = 0; i < size; i++)
 		{
 			// cout << "accessed " << src[i].imgFilename << " at " << (int)src[i].lastAccess << ", ready" << src[i].image.Ready() << endl;
 			if ((src[i].lastAccess < lowTime || lowTimeSet == 0) && src[i].image.Ready())
@@ -192,7 +192,7 @@ int RequestTileLoading(vector<class SourceKml> &src, class SourceKml &toLoad, in
 
 		// Recount
 		count = 0;
-		for (unsigned int i = 0; i < src.size(); i++)
+		for (unsigned int i = 0; i < size; i++)
 			if (src[i].image.Ready())
 				count++;
 	}
@@ -249,7 +249,8 @@ public:
 	class Tile dst;
 	int complete, running, failed;
 	int enableTileLoading, maxTilesLoaded;
-	vector<class SourceKml> *srcPtr;
+	class SourceKml *srcPtr;
+	size_t srcSize;
 	bool mergeTiles;
 	class TileJob *originalObj;
 
@@ -292,6 +293,7 @@ TileJob::TileJob()
 	enableTileLoading = 0;
 	maxTilesLoaded = DEFAULT_MAX_TILES;
 	srcPtr = NULL;
+	srcSize = 0;
 	mergeTiles = false;
 	originalObj = this;
 }
@@ -308,6 +310,7 @@ TileJob &TileJob::operator=(const TileJob &a)
 	enableTileLoading = a.enableTileLoading;
 	maxTilesLoaded = a.maxTilesLoaded;
 	srcPtr = a.srcPtr;
+	srcSize = a.srcSize;
 	mergeTiles = a.mergeTiles;
 	originalObj = a.originalObj;
 	return *this;
@@ -321,7 +324,8 @@ int TileJob::Render()
 		cout << "Error: Bad srcPtr pointer" << endl;
 		throw(4000);
 	}
-	vector<class SourceKml> &src = *srcPtr;
+	class SourceKml* src = srcPtr;
+	const int size = srcSize;
 
 	class ImgMagick outImg;
 	outImg.SetNumChannels(3);
@@ -361,7 +365,7 @@ int TileJob::Render()
 		{
 			if (enableTileLoading)
 			{
-				int status = RequestTileLoading(src, srcKml, this->maxTilesLoaded);
+				int status = RequestTileLoading(src, size, srcKml, this->maxTilesLoaded);
 				if (status == 0)
 				{
 					statusLock.lock();
@@ -503,7 +507,6 @@ int main(int argc, char **argv)
 	// cout << long2tile(-3.68, zoom) << "," << lat2tile(54.8333,zoom) << endl;
 	// cout << long2tile(-3.04, zoom) << "," << lat2tile(55.2446,zoom) << endl;
 
-	vector<class SourceKml> src;
 	class DelimitedFile boundsFile;
 
 	string outFolder = "out";
@@ -582,18 +585,18 @@ int main(int argc, char **argv)
 	class Tile sourceBBox;
 	int sourceBBoxSet = 0;
 
+	SourceKml* src = new SourceKml[ inputFiles.size() ];
+
 	//***************************************************
 	//** For each input file, parse KML into local mem
 	//***************************************************
 
 	for (unsigned int i = 0; i < inputFiles.size(); i++)
 	{
-		class SourceKml temp;
 		cout << "Source file '" << inputFiles[i] << "'" << endl;
 		string filePath = GetFilePath(inputFiles[i].c_str());
 
-		src.push_back(temp);
-		class SourceKml &last = src[src.size() - 1];
+		class SourceKml &last = src[i];
 		string imgFilename;
 		last.kmlFilename = inputFiles[i];
 		int ret = ReadKmlFile(last.kmlFilename.c_str(), last.tile, imgFilename);
@@ -670,7 +673,7 @@ int main(int argc, char **argv)
 	}
 
 	// Set zoom levels in the respective kml sources
-	for (unsigned int t = 0; t < src.size(); t++)
+	for (unsigned int t = 0; t < inputFiles.size(); t++)
 	{
 		class SourceKml &srcKml = src[t];
 		string chkStr = GetFilePath(srcKml.kmlFilename.c_str());
@@ -726,7 +729,8 @@ int main(int argc, char **argv)
 				job.outFolder0 = outFolder0;
 				job.outFolder1 = outFolder1;
 				job.outFolder2 = outFolder2;
-				job.srcPtr = &src;
+				job.srcPtr = src;
+				job.srcSize = inputFiles.size();
 				job.maxTilesLoaded = maxTilesLoaded;
 				job.mergeTiles = mergeTiles;
 
@@ -740,7 +744,7 @@ int main(int argc, char **argv)
 				// cout << "Planning tile " << tileLat << "," << tileLon << "," << zoom << endl;
 				// For each KML source
 				// cout << "test"<<src.size()<< endl;
-				for (unsigned int t = 0; t < src.size(); t++)
+				for (unsigned int t = 0; t < inputFiles.size(); t++)
 				{
 					class SourceKml &srcKml = src[t];
 
@@ -868,7 +872,7 @@ int main(int argc, char **argv)
 			for (unsigned int t = 0; t < maxDep.size(); t++)
 			{
 				class SourceKml &toLoad = src[maxDep[t]];
-				int status = RequestTileLoading(src, toLoad, maxTilesLoaded);
+				int status = RequestTileLoading(src, inputFiles.size(), toLoad, maxTilesLoaded);
 				if (status == 0)
 					exit(0);
 			}
@@ -905,7 +909,7 @@ int main(int argc, char **argv)
 				statusLock.lock();
 				int localThreadRunning = gThreadsRunning;
 				statusLock.unlock();
-				cout << "threadsRunning: " << localThreadRunning << endl;
+				//cout << "threadsRunning: " << localThreadRunning << endl;
 
 				// Wait if we have enough running threads
 				while (localThreadRunning >= targetNumThreads)
@@ -958,6 +962,8 @@ int main(int argc, char **argv)
 			countFail++;
 	}
 	cout << "Number of tiles failed: " << countFail << endl;
+
+	delete[] src;
 
 	ImgMagick::Term();
 }

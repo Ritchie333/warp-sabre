@@ -24,28 +24,6 @@ ImgMagick::ImgMagick()
 	channels = 3;
 }
 
-ImgMagick::ImgMagick(const ImgMagick &a)
-{
-	raw = 0;
-	operator=(a);
-}
-
-ImgMagick &ImgMagick::operator=(const ImgMagick &a)
-{
-	height = a.height;
-	width = a.width;
-	channels = a.channels;
-	if (raw)
-		delete raw;
-	raw = 0;
-	if (a.raw)
-	{
-		raw = new unsigned char[height * width * channels];
-		memcpy(raw, a.raw, height * width * channels);
-	}
-	return *this;
-}
-
 ImgMagick::~ImgMagick()
 {
 	Close();

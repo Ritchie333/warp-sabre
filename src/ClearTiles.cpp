@@ -102,7 +102,6 @@ int main(int argc, char **argv)
 			cout << "input file " << inputFiles[i] << endl;
 	}
 
-	vector<class SourceKml> src;
 	class DelimitedFile boundsFile;
 	int boundsOpen = boundsFile.Open(boundsFilename.c_str());
 	if (boundsOpen < 1)
@@ -111,15 +110,15 @@ int main(int argc, char **argv)
 	class Tile sourceBBox;
 	int sourceBBoxSet = 0;
 
+	SourceKml* src = new SourceKml[ inputFiles.size() ];
+
 	// For each input file, parse KML into local mem
 	for (int i = 0; i < static_cast<int>(inputFiles.size()); i++)
 	{
-		class SourceKml temp;
 		cout << "Source file '" << inputFiles[i] << "'" << endl;
 		string filePath = GetFilePath(inputFiles[i].c_str());
 
-		src.push_back(temp);
-		class SourceKml &last = src[src.size() - 1];
+		class SourceKml &last = src[i];
 		string imgFilename;
 		int ret = ReadKmlFile(inputFiles[i].c_str(), last.tile, imgFilename);
 		last.imgFilename = filePath;
@@ -214,6 +213,8 @@ int main(int argc, char **argv)
 
 			} // End of tile loop
 	} // End of zoom loop
+
+	delete[] src;
 
 	ImgMagick::Term();
 }

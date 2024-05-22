@@ -9,9 +9,7 @@ class ImgMagick : public ImgFrameBase
 {
 public:
 	ImgMagick();
-	ImgMagick(const ImgMagick &a);
 	virtual ~ImgMagick();
-	ImgMagick &operator=(const ImgMagick &a);
 
 	virtual int Open(const char *filename);
 	virtual int Save(const char *filename);
@@ -39,10 +37,16 @@ public:
 	static void Term();
 
 protected:
+	// The raw pixel data. (width * height * channels) bytes long.
 	unsigned char *raw;
 	int height;
 	int width;
 	int channels;
+
+private:
+	// Don't allow copying as there is a large amount of allocated data
+	ImgMagick(const ImgMagick &a) = delete;
+	ImgMagick &operator=(const ImgMagick &a) = delete;
 };
 
 #endif // IMG_MAGICK_H
