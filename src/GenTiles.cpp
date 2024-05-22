@@ -425,8 +425,6 @@ int TileJob::Render()
 		// cout << "c" << endl;
 
 		if( srcKml.copyPixels ) {
-			for (unsigned int i = 0; i < srcKml.bounds.size(); i++)
-				srcKml.copyPixels->UpdateBoundingBox(srcKml.bounds[i].c_str());
 			srcKml.copyPixels->Copy(tile, outImg, this->dst, this->mergeTiles);
 		}
 	} // End of copy KML source
@@ -652,6 +650,8 @@ int main(int argc, char **argv)
 		}
 
 		last.CreateCopyPixelsObj();
+		for (unsigned int i = 0; i < last.bounds.size(); i++)
+			last.copyPixels->UpdateBoundingBox(last.bounds[i].c_str());
 	}
 
 	cout << "Input files bounding box:" << endl;
