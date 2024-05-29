@@ -42,7 +42,7 @@ static void  FUN(KERNEL)     /*that is, resample_array_inv_conv_ ## KERNEL */
   int i,p=0,j,pj, firstj,lastj;
   double x,px,c,s,v,dx;
 #ifdef KERNEL_sinc_fast
-  int index, indexbound, increment;
+  long index, indexbound, increment;
 #endif
   px=F[1];
   for(i=0;i<d_len;i++) {
@@ -88,25 +88,27 @@ static void  FUN(KERNEL)     /*that is, resample_array_inv_conv_ ## KERNEL */
     }
 #else
     /* this is how it is computed very fast for a kernel based on sinc, such as lanczos */
-    for ( ;  index<=0 ; ) { 
-      s=SINC_TABLE(-index ); 
-      pj=j;
-      if ( pj<0 ) pj=0;
-      else if( pj>=s_len) pj=s_len-1;
-      v+=s* (double)src[pj*s_stride];
-      c+=s; 
-      j++;
-      index+=increment;
-    }
-    for ( ;  index <= indexbound  ; ) {
-      s=SINC_TABLE(index);
-      pj=j;
-      if ( pj<0 ) pj=0;
-      else if( pj>=s_len) pj=s_len-1;
-      v+=s* (double)src[pj*s_stride];
-      c+=s; 
-      j++;
-      index+=increment;
+    if( increment ) {
+      for ( ;  index<=0 ; ) { 
+        s=SINC_TABLE(-index ); 
+        pj=j;
+        if ( pj<0 ) pj=0;
+        else if( pj>=s_len) pj=s_len-1;
+        v+=s* (double)src[pj*s_stride];
+        c+=s; 
+        j++;
+        index+=increment;
+      }
+      for ( ;  index <= indexbound  ; ) {
+        s=SINC_TABLE(index);
+        pj=j;
+        if ( pj<0 ) pj=0;
+        else if( pj>=s_len) pj=s_len-1;
+        v+=s* (double)src[pj*s_stride];
+        c+=s; 
+        j++;
+        index+=increment;
+      }
     }
 #endif
 
