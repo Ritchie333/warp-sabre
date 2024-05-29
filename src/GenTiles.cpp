@@ -52,12 +52,10 @@ public:
 	double xscale, yscale, xori, yori;
 };
 
-vector<double> RescaleTransform(vector<double> in, void *userPtr)
+const Point RescaleTransform(const Point& in, void *userPtr)
 {
-	struct RescaleParams &params = *(struct RescaleParams *)userPtr;
-	vector<double> out;
-	out.push_back(in[0] * params.xscale - params.xori);
-	out.push_back(in[1] * params.yscale - params.yori);
+	struct RescaleParams *params = (struct RescaleParams *)userPtr;
+	Point out (in.x * params->xscale - params->xori, in.y * params->yscale - params->yori);
 	return out;
 }
 
@@ -69,7 +67,7 @@ int GetResizedSubimage(class Tile &src, class Tile &dst, class ImgMagick &imageI
 	params.xori = params.xscale * src.sx * (dst.lonmin - src.lonmin) / (src.lonmax - src.lonmin);
 	params.yori = params.yscale * src.sy * (src.latmax - dst.latmax) / (src.latmax - src.latmin);
 
-	class ImageWarpByFunc warp;
+	class ImageWarpByFunc warp( 10 );
 	warp.Warp(imageIn, imageOut, RescaleTransform, &params);
 
 	// cout << "scale " << xscale << "\t" << yscale << endl;

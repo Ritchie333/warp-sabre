@@ -63,7 +63,7 @@ public:
 	}
 };
 
-vector<double> ProjRefToOutImg(vector<double> ref, PolyProjectArgs::ProjType projType, class Tile &tile, void *userPtr)
+const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType, class Tile &tile, void *userPtr)
 {
 	class PolyProjectArgs *args = (class PolyProjectArgs *)userPtr;
 	double lat = 0.0, lon = 0.0, alt = 0.0;
@@ -75,38 +75,38 @@ vector<double> ProjRefToOutImg(vector<double> ref, PolyProjectArgs::ProjType pro
 			// cout << "1 " << ref[0]<< "," << ref[1] << endl;
 			try
 			{
-				gConverter.ConvertGbos1936ToWgs84(ref[0], ref[1], 0.0, lat, lon, alt);
+				gConverter.ConvertGbos1936ToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
 			}
 			catch (int e)
 			{
 				cout << "Using HelmertConverter as fallback" << endl;
-				gFallbackConverter.ConvertGbos1936ToWgs84(ref[0], ref[1], 0.0, lat, lon, alt);
+				gFallbackConverter.ConvertGbos1936ToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
 			}
 		}
 		else
 		{
-			lat = ref[1];
-			lon = ref[0];
+			lat = ref.y;
+			lon = ref.x;
 			alt = 0.0;
 		}
 		break;
 
 	case PolyProjectArgs::Mercator:
-		lat = ref[0];
-		lon = ref[1];
+		lat = ref.y;
+		lon = ref.x;
 		alt = 0.0;
 		break;
 	case PolyProjectArgs::OSI:
-		gFallbackConverter.ConvertOsiToWgs84(ref[0], ref[1], 0.0, lat, lon, alt);
+		gFallbackConverter.ConvertOsiToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
 		break;
 	case PolyProjectArgs::Cassini:
-		gFallbackConverter.ConvertCasToWgs84(ref[0], ref[1], 0.0, lat, lon, alt);
+		gFallbackConverter.ConvertCasToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
 		break;
 	case PolyProjectArgs::BonneS:
-		gFallbackConverter.ConvertBnSToWgs84(ref[0], ref[1], 0.0, lat, lon, alt);
+		gFallbackConverter.ConvertBnSToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
 		break;
 	case PolyProjectArgs::BonneI:
-		gFallbackConverter.ConvertBnIToWgs84(ref[0], ref[1], 0.0, lat, lon, alt);
+		gFallbackConverter.ConvertBnIToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
 		break;
 	}
 	if (projType != PolyProjectArgs::OSGB && !args->mercatorOut)
@@ -115,8 +115,7 @@ vector<double> ProjRefToOutImg(vector<double> ref, PolyProjectArgs::ProjType pro
 		exit(0);
 	}
 
-	vector<double> pout;
-	tile.Project(lat, lon, pout);
+	Point pout = tile.Project(lat, lon);
 	// if(ref[0] >= 333000 && ref[1] <= 550000)
 	{
 		// cout << "corner " << ref[0] << "," << ref[1] << "\t" << pout[0] << "," << pout[1] << endl;
@@ -125,10 +124,10 @@ vector<double> ProjRefToOutImg(vector<double> ref, PolyProjectArgs::ProjType pro
 	return pout;
 }
 
-vector<double> PolyProjectWithPtr(vector<double> in, void *userPtr)
+const Point PolyProjectWithPtr(const Point& in, void *userPtr)
 {
 	class PolyProjectArgs *args = (class PolyProjectArgs *)userPtr;
-	vector<double> ref = PolyProject(in, args->imgToRefPoly, args->order);
+	const Point ref = PolyProject(in, args->imgToRefPoly, args->order);
 	if (!args->ptile)
 		throw(0);
 	/*double lat=0.0, lon=0.0, alt=0.0;
@@ -145,8 +144,7 @@ vector<double> PolyProjectWithPtr(vector<double> in, void *userPtr)
 void AddPointPoly(class Tile &tile, class PolyProjection &polyEst, double lat, double lon, double x, double y)
 {
 	// cout << "AddPointPoly " << lat << "," << lon << "," << x << "," << y << endl;
-	vector<double> p;
-	tile.Project(lat, lon, p);
+	Point p = tile.Project(lat, lon);
 	polyEst.AddPoint(x, y, p);
 }
 
@@ -596,7 +594,7 @@ int main(int argc, char *argv[])
 	// exit(0);
 
 	// Transform image
-	class ImageWarpByFunc imageWarpByFunc;
+	class ImageWarpByFunc imageWarpByFunc( 10 );
 	imageWarpByFunc.xsize = 100;
 	imageWarpByFunc.ysize = 100;
 	class PolyProjectArgs args;
@@ -613,12 +611,12 @@ int main(int argc, char *argv[])
 		{
 			// unsigned char col[3] = {255,0,0};
 			// cout << polyEst.transformedPoints[i][0] << "," << polyEst.transformedPoints[i][1] << endl;
-			DrawCross(endImage, srcImgToRef.transformedPoints[i][0], srcImgToRef.transformedPoints[i][1], 255, 0, 0);
+			DrawCross(endImage, srcImgToRef.transformedPoints[i].x, srcImgToRef.transformedPoints[i].y, 255, 0, 0);
 
 			// endImage.draw_circle(polyEst.transformedPoints[i][0],polyEst.transformedPoints[i][1],3,col);
 
 			// vector<double> proj = ProjRefToOutImg(polyEst.originalPoints[i], tile);
-			DrawCross(endImage, srcImgToRef.originalPoints[i][0], srcImgToRef.originalPoints[i][1], 0, 0, 255);
+			DrawCross(endImage, srcImgToRef.originalPoints[i].x, srcImgToRef.originalPoints[i].y, 0, 0, 255);
 		}
 
 	cout << "Saving image..." << endl;

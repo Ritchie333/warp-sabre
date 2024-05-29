@@ -2,10 +2,12 @@
 #ifndef TRANSFORM_POLY_H
 #define TRANSFORM_POLY_H
 
+#include "Point.h"
+
 #include <vector>
 using namespace std;
 
-vector<double> PolyProject(vector<double> point, vector<double> pose, int order);
+Point PolyProject(const Point& point, vector<double> pose, int order);
 // vector<double> PolyUnProject(vector<double> point, vector<double>pose);
 int CoeffSize(int order);
 int CalcOrderFitForNumConstraints(int numConstr);
@@ -20,12 +22,12 @@ public:
 	// vector<double> UnProject(vector<double> point, vector<double>pose) {vector<double> empty; return empty;};
 
 	void Clear();
-	void AddPoint(vector<double> original, vector<double> transformed);
+	void AddPoint(const Point& original, const Point& transformed);
 	void AddPoint(double ox, double oy, double tx, double ty);
-	void AddPoint(double ox, double oy, vector<double> transformed);
+	void AddPoint(double ox, double oy, const Point& transformed);
 	vector<double> Estimate();
 
-	vector<vector<double>> originalPoints, transformedPoints;
+	vector<Point> originalPoints, transformedPoints;
 	int order;
 };
 

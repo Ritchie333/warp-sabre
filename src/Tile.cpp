@@ -22,13 +22,11 @@ void Tile::Project(double lat, double lon, double &ixOut, double &iyOut)
 	// cout << lat << "," << lon << "," << ixOut << "," << iyOut << endl;
 }
 
-void Tile::Project(double lat, double lon, vector<double> &out)
+const Point Tile::Project(double lat, double lon)
 {
 	double iy, ix;
 	Project(lat, lon, ix, iy);
-	out.clear();
-	out.push_back(ix);
-	out.push_back(iy);
+	return Point( ix, iy );
 }
 
 void Tile::UnProject(double x, double y, double &latOut, double &lonOut)

@@ -1,5 +1,6 @@
 
 #include "ImageWarpByFunc.h"
+#include "Point.h"
 extern "C"
 {
 #include "libmorph/warp2.h"
@@ -8,10 +9,10 @@ extern "C"
 
 //************************************************************
 
-ImageWarpByFunc::ImageWarpByFunc()
+ImageWarpByFunc::ImageWarpByFunc( const int size )
 {
-	xsize = 10;
-	ysize = 10;
+	xsize = size;
+	ysize = size;
 }
 
 ImageWarpByFunc::~ImageWarpByFunc()
@@ -20,7 +21,7 @@ ImageWarpByFunc::~ImageWarpByFunc()
 
 int ImageWarpByFunc::Warp(class ImgMagick &in,
 						  class ImgMagick &out,
-						  vector<double> (*transform)(vector<double> in, void *userPtr),
+						  ImageWarpByFunc::Func transform,
 						  void *userPtr)
 {
 	// cout << "Creating raw image buffer" << endl;
@@ -47,12 +48,10 @@ int ImageWarpByFunc::Warp(class ImgMagick &in,
 		}
 	for (int i = 0; i < xsize * ysize; i++)
 	{
-		vector<double> mesh;
-		mesh.push_back(sx[i]);
-		mesh.push_back(sy[i]);
-		vector<double> meshProj = transform(mesh, userPtr);
-		ex[i] = meshProj[0];
-		ey[i] = meshProj[1];
+		Point mesh( sx[i], sy[i] );
+		Point meshProj = transform(mesh, userPtr);
+		ex[i] = meshProj.x;
+		ey[i] = meshProj.y;
 		slabel[i] = 0;
 	}
 

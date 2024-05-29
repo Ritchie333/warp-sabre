@@ -2,8 +2,7 @@
 #ifndef TILE_H
 #define TILE_H
 
-#include <vector>
-using namespace std;
+#include "Point.h"
 
 class Tile
 {
@@ -13,7 +12,7 @@ public:
 	Tile();
 	virtual ~Tile();
 	void Project(double lat, double lon, double &ixOut, double &iyOut);
-	void Project(double lat, double lon, vector<double> &out);
+	const Point Project(double lat, double lon);
 	void UnProject(double x, double y, double &latOut, double &lonOut);
 };
 

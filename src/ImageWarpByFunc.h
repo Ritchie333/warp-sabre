@@ -2,17 +2,20 @@
 #define IMAGE_WARP_BY_FUNC_H
 
 #include "ImgMagick.h"
-#include <vector>
-using namespace std;
+#include "Point.h"
 
 class ImageWarpByFunc
 {
 public:
-	ImageWarpByFunc();
+
+	typedef const Point(*Func)(const Point& in, void* userPtr);
+
+	ImageWarpByFunc( const int size );
 	virtual ~ImageWarpByFunc();
+	
 	int Warp(class ImgMagick &in,
 			 class ImgMagick &out,
-			 vector<double> (*transform)(vector<double> in, void *userPtr),
+			 Func transform,
 			 void *userPtr);
 
 	int xsize, ysize;

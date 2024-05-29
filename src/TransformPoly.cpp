@@ -49,36 +49,30 @@ int CalcOrderFitForNumConstraints(int numConstr)
 	return HIGHEST_ALLOWED_POLY;
 }
 
-vector<double> PolyProject(vector<double> point, vector<double> pose, int order)
+Point PolyProject(const Point& point, vector<double> pose, int order)
 {
 	if (pose.size() == 0 || pose.size() % 2)
 	{
 		cout << "Polynomial coeff matrix size " << pose.size() << endl;
 		ThrowError<logic_error>("Affine transform vector unexpected size", __LINE__, __FILE__);
 	}
-	if (point.size() != 2)
-		ThrowError<logic_error>("Point to transform does not have 2 components", __LINE__, __FILE__);
+	
+	vector<double> coeff = GetCoeff(order, point.x, point.y);
 
-	vector<double> coeff = GetCoeff(order, point[0], point[1]);
-
-	vector<double> result;
-	double tot = 0.0;
+	double totx = 0.0;
 	for (unsigned int i = 0; i < coeff.size(); i++)
 	{
-		tot += coeff[i] * pose[i];
+		totx += coeff[i] * pose[i];
 	}
-	result.push_back(tot);
 
-	tot = 0.0;
+	double toty = 0.0;
 	int indexOff = (pose.size() / 2);
 	for (unsigned int i = 0; i < coeff.size(); i++)
 	{
-		tot += coeff[i] * pose[i + indexOff];
+		toty += coeff[i] * pose[i + indexOff];
 	}
 
-	result.push_back(tot);
-
-	return result;
+	return Point(totx, toty);
 }
 
 /*vector<double> PolyUnProject(vector<double> point, vector<double>pose)
@@ -103,7 +97,7 @@ void PolyProjection::Clear()
 	transformedPoints.clear();
 }
 
-void PolyProjection::AddPoint(vector<double> original, vector<double> transformed)
+void PolyProjection::AddPoint(const Point& original, const Point& transformed)
 {
 	originalPoints.push_back(original);
 	transformedPoints.push_back(transformed);
@@ -111,19 +105,14 @@ void PolyProjection::AddPoint(vector<double> original, vector<double> transforme
 
 void PolyProjection::AddPoint(double ox, double oy, double tx, double ty)
 {
-	vector<double> temp, temp2;
-	temp.push_back(ox);
-	temp.push_back(oy);
-	temp2.push_back(tx);
-	temp2.push_back(ty);
+	Point temp( ox, oy );
+	Point temp2( tx, ty );
 	AddPoint(temp, temp2);
 }
 
-void PolyProjection::AddPoint(double ox, double oy, vector<double> transformed)
+void PolyProjection::AddPoint(double ox, double oy, const Point& transformed)
 {
-	vector<double> temp;
-	temp.push_back(ox);
-	temp.push_back(oy);
+	Point temp( ox, oy );
 	AddPoint(temp, transformed);
 }
 
@@ -152,7 +141,7 @@ vector<double> PolyProjection::Estimate()
 		for (unsigned int i = 0; i < originalPoints.size(); i++)
 		{
 
-			vector<double> coeff = GetCoeff(order, originalPoints[i][0], originalPoints[i][1]);
+			vector<double> coeff = GetCoeff(order, originalPoints[i].x, originalPoints[i].y);
 			for (unsigned int j = 0; j < coeff.size(); j++)
 			{
 				po(j + 1, i + 1) = coeff[j];
@@ -163,8 +152,8 @@ vector<double> PolyProjection::Estimate()
 		Matrix pt(2, transformedPoints.size());
 		for (unsigned int i = 0; i < transformedPoints.size(); i++)
 		{
-			for (unsigned int j = 0; j < transformedPoints[i].size(); j++)
-				pt(j + 1, i + 1) = transformedPoints[i][j];
+			pt(1, i + 1) = transformedPoints[i].x;
+			pt(2, i + 1) = transformedPoints[i].y;
 		}
 		// PrintMatrixP(pt);
 
@@ -187,11 +176,11 @@ vector<double> PolyProjection::Estimate()
 		double totalError = 0.0, totalCount = 0.0;
 		for (unsigned int i = 0; i < originalPoints.size(); i++)
 		{
-			vector<double> proj = PolyProject(originalPoints[i], out, order);
-			cout << originalPoints[i][0] << "," << originalPoints[i][1] << "\t";
-			cout << transformedPoints[i][0] << "," << transformedPoints[i][1] << "\t";
-			cout << proj[0] << "," << proj[1] << "\t";
-			double diff = pow(pow(transformedPoints[i][0] - proj[0], 2.0) + pow(transformedPoints[i][1] - proj[1], 2.0), 0.5);
+			Point proj = PolyProject(originalPoints[i], out, order);
+			cout << originalPoints[i].x << "," << originalPoints[i].y << "\t";
+			cout << transformedPoints[i].x << "," << transformedPoints[i].y << "\t";
+			cout << proj.x << "," << proj.y << "\t";
+			double diff = pow(pow(transformedPoints[i].x - proj.x, 2.0) + pow(transformedPoints[i].y - proj.y, 2.0), 0.5);
 			cout << diff << endl;
 			totalError += diff;
 			totalCount++;
