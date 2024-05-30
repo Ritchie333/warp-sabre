@@ -9,10 +9,9 @@ extern "C"
 
 //************************************************************
 
-ImageWarpByFunc::ImageWarpByFunc( const int size )
+ImageWarpByFunc::ImageWarpByFunc( const int size ) :
+	xsize( size ), ysize( size )
 {
-	xsize = size;
-	ysize = size;
 }
 
 ImageWarpByFunc::~ImageWarpByFunc()

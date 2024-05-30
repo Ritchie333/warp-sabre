@@ -594,9 +594,7 @@ int main(int argc, char *argv[])
 	// exit(0);
 
 	// Transform image
-	class ImageWarpByFunc imageWarpByFunc( 10 );
-	imageWarpByFunc.xsize = 100;
-	imageWarpByFunc.ysize = 100;
+	class ImageWarpByFunc imageWarpByFunc( srcImgToRef.transformedPoints.size() );
 	class PolyProjectArgs args;
 	args.imgToRefPoly = poly;
 	args.projType = projType;

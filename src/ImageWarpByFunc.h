@@ -18,7 +18,7 @@ public:
 			 Func transform,
 			 void *userPtr);
 
-	int xsize, ysize;
+	const int xsize, ysize;
 };
 
 #endif // IMAGE_WARP_BY_FUNC_H
