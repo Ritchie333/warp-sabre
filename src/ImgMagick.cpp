@@ -17,10 +17,17 @@ void ImgMagick::Term()
 
 ImgMagick::ImgMagick()
 {
-
 	raw = 0;
 	height = 0;
 	width = 0;
+	channels = 3;
+}
+
+ImgMagick::ImgMagick( const int w, const int h )
+{
+	raw = 0;
+	height = h;
+	width = w;
 	channels = 3;
 }
 
@@ -34,6 +41,14 @@ void ImgMagick::Close()
 	if (raw)
 		delete raw;
 	raw = 0;
+}
+
+int ImgMagick::Create()
+{
+	Close();
+	raw = new unsigned char[ width * height * channels ];
+	memset( raw, 0, width * height * channels * sizeof( unsigned char ) );
+	return 1;
 }
 
 int ImgMagick::Open(const char *filename)
@@ -114,23 +129,13 @@ int ImgMagick::GetNumChannels() const
 
 int ImgMagick::SetWidth(int val)
 {
-	if (width == val)
-		return 0;
-	if (raw)
-		delete raw;
 	width = val;
-	raw = new unsigned char[width * height * channels];
 	return 1;
 }
 
 int ImgMagick::SetHeight(int val)
 {
-	if (height == val)
-		return 0;
-	if (raw)
-		delete raw;
 	height = val;
-	raw = new unsigned char[width * height * channels];
 	return 1;
 }
 

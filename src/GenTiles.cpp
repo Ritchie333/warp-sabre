@@ -82,22 +82,6 @@ int GetResizedSubimage(class Tile &src, class Tile &dst, class ImgMagick &imageI
 	return 1;
 }
 
-//************************
-
-void ImageToBlack(class ImgMagick &image)
-{
-	int width = image.GetWidth();
-	int height = image.GetHeight();
-	int chans = image.GetNumChannels();
-
-	for (int i = 0; i < width; i++)
-		for (int j = 0; j < height; j++)
-			for (int k = 0; k < chans; k++)
-			{
-				image.SetPix(i, j, k, 0);
-			}
-}
-
 //*****************************************
 
 void DrawMarkerPix(class ImgMagick &img, int x, int y, double r, double g, double b)
@@ -324,17 +308,11 @@ int TileJob::Render()
 	class SourceKml* src = srcPtr;
 	const int size = srcSize;
 
-	class ImgMagick outImg;
-	outImg.SetNumChannels(3);
-	outImg.SetWidth(this->dst.sx);
-	outImg.SetHeight(this->dst.sy);
-	ImageToBlack(outImg);
+	class ImgMagick outImg( this->dst.sx, this->dst.sy );
+	outImg.Create();
 
-	class ImgMagick tile;
-	tile.SetNumChannels(3);
-	tile.SetWidth(256);
-	tile.SetHeight(256);
-	ImageToBlack(tile);
+	class ImgMagick tile( 256, 256 );
+	tile.Create();
 
 	// Magick::Image image(src.GetWidth(),src.GetHeight(),"RGB",CharPixel,src.GetInternalDataConst());
 

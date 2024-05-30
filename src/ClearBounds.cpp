@@ -63,8 +63,6 @@ void ClearImage(const string &srcFilename, DelimitedFile &boundsFile, const int 
 
 int main(int argc, char *argv[])
 {
-	ImgMagick::Init();
-
 	vector<SourceKml> src;
 	DelimitedFile boundsFile;
 
@@ -123,6 +121,5 @@ int main(int argc, char *argv[])
 			ClearImage(*it, boundsFile, edge);
 		}
 	}
-	ImgMagick::Term();
 	return 1;
 }

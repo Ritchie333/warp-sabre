@@ -9,9 +9,11 @@ class ImgMagick : public ImgFrameBase
 {
 public:
 	ImgMagick();
+	ImgMagick( const int width, const int height );
 	virtual ~ImgMagick();
 
 	virtual int Open(const char *filename);
+	virtual int Create();
 	virtual int Save(const char *filename);
 	virtual void Clear();
 	virtual void Close();

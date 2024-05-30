@@ -38,6 +38,7 @@ public:
 	}
 
 	virtual int Open(const char *filename) = 0; // {return -1;};
+	virtual int Create() = 0;
 
 	// Pixel data
 	virtual double GetPix(int x, int y, unsigned int channel) const = 0;

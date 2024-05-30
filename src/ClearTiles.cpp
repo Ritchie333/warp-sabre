@@ -3,8 +3,6 @@
 #include "gbos1936/Gbos1936.h"
 #include "StringUtils.h"
 #include "Tile.h"
-#include "ImgMagick.h"
-#include "ImageWarpByFunc.h"
 #include "ganzc/LatLong-OSGBconversion.h"
 #include "ReadKmlFile.h"
 #include "OSTN02Perl.h"
@@ -23,40 +21,11 @@
 #include <iostream>
 #include <exception>
 #include <vector>
-// using namespace Magick;
-
-//************************************
-
-void DrawMarkerPix(class ImgMagick &img, int x, int y, double r, double g, double b)
-{
-	if (x < 0 || x >= img.GetWidth())
-		return;
-	if (y < 0 || y >= img.GetHeight())
-		return;
-	img.SetPix(x, y, 0, r);
-	img.SetPix(x, y, 1, g);
-	img.SetPix(x, y, 2, b);
-}
-
-void DrawMarker(class ImgMagick &img, double x, double y)
-{
-	// Draw to tile
-	for (int i = -1; i <= 1; i++)
-		for (int j = -1; j <= 1; j++)
-		{
-			if (i != 0 || j != 0)
-				DrawMarkerPix(img, x + (double)i + 0.5, y + (double)j + 0.5, 0.0, 0.0, 0.0);
-			else
-				DrawMarkerPix(img, x + (double)i + 0.5, y + (double)j + 0.5, 255.0, 0.0, 255.0);
-		}
-}
 
 //***************************************
 
 int main(int argc, char **argv)
 {
-	ImgMagick::Init();
-
 	// Image imageInOut("step.jpg");
 	// imageInOut.crop( Geometry(255,255,0,0) );
 	// imageInOut.write("test2.png");
@@ -161,15 +130,6 @@ int main(int argc, char **argv)
 	cout << "Input files bounding box:" << endl;
 	cout << sourceBBox.latmin << "," << sourceBBox.lonmin << "," << sourceBBox.latmax << "," << sourceBBox.lonmax << endl;
 
-	class ImgMagick tile;
-	tile.SetNumChannels(3);
-	tile.SetWidth(256);
-	tile.SetHeight(256);
-	class ImgMagick outImg;
-	outImg.SetNumChannels(3);
-	outImg.SetWidth(256);
-	outImg.SetHeight(256);
-
 	// int zoom = 14;
 	for (unsigned int zoom = 17; zoom >= 2; zoom--)
 	{
@@ -185,14 +145,6 @@ int main(int argc, char **argv)
 		for (int tileLon = srcWtile; tileLon <= srcEtile; tileLon++)
 			for (int tileLat = srcNtile; tileLat <= srcStile; tileLat++)
 			{
-
-				dst.latmax = tile2lat(tileLat, zoom);
-				dst.lonmin = tile2long(tileLon, zoom);
-				dst.latmin = tile2lat(tileLat + 1, zoom);
-				dst.lonmax = tile2long(tileLon + 1, zoom);
-				dst.sx = outImg.GetWidth();
-				dst.sy = outImg.GetHeight();
-
 				string outFilename = outFolder;
 				string outFolder0 = outFilename;
 				outFilename += "/";
@@ -216,5 +168,4 @@ int main(int argc, char **argv)
 
 	delete[] src;
 
-	ImgMagick::Term();
 }

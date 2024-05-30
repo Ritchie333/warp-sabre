@@ -581,10 +581,8 @@ int main(int argc, char *argv[])
 	if (fitOnly)
 		return 0;
 
-	class ImgMagick endImage;
-	endImage.SetNumChannels(3);
-	endImage.SetWidth(tile.sx);
-	endImage.SetHeight(tile.sy);
+	class ImgMagick endImage( tile.sx, tile.sy );
+	endImage.Create();
 
 	// vector<double> test;
 	// test.push_back(333000);
