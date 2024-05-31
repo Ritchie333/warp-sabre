@@ -2,6 +2,7 @@
 #include "ImgMagick.h"
 #include <vector>
 #include <iostream>
+#include <string>
 #include <stdio.h>
 #include "CopyPixels.h"
 #include "Tile.h"
@@ -11,36 +12,33 @@ using namespace std;
 
 class HelmertConverter gConverter;
 
+#define BEGIN_MASK_MAP(type)	string sType = type;
+#define	MASK_ENTRY(name,class)	if( sType == name ) { mask = new class; }
+#define END_MASK_MAP()
+
 CopyPixels *CopyPixels::Create(const char *type)
 {
 	CopyPixels *mask = NULL;
-	switch (type[0])
-	{
-	case 'G':
-		mask = new CopyPixelsWithOsMask();
-		break;
-	case 'O':
-		mask = new CopyPixelsWithRawMask();
-		break;
-	case 'C':
-		mask = new CopyPixelsWithCassini();
-		break;
-	case 'B':
-		mask = new CopyPixelsWithBonne();
-		break;
-	case 'I':
-		mask = new CopyPixelsWithOsI();
-		break;
-	case 'R':
-		mask = new CopyPixelsWithIrishBonne();
-		break;
-	case 'M':
-		mask = new CopyPixelsWithMercator();
-		break;
-	default:
+	
+	BEGIN_MASK_MAP(type)
+	MASK_ENTRY("G", CopyPixelsWithOsMask )
+	MASK_ENTRY("O", CopyPixelsWithRawMask )
+	MASK_ENTRY("OS", CopyPixelsWithRawMask )
+	MASK_ENTRY("C", CopyPixelsWithCassini )
+	MASK_ENTRY("CAS", CopyPixelsWithCassini )
+	MASK_ENTRY("B", CopyPixelsWithBonne )
+	MASK_ENTRY("SB", CopyPixelsWithBonne )
+	MASK_ENTRY("I", CopyPixelsWithOsI )
+	MASK_ENTRY("R", CopyPixelsWithIrishBonne )
+	MASK_ENTRY("IB", CopyPixelsWithIrishBonne )
+	MASK_ENTRY("FB", CopyPixelsWithFrenchBonne )
+	MASK_ENTRY("PM", CopyPixelsWithParisMercator )
+	MASK_ENTRY("M", CopyPixelsWithMercator )
+	END_MASK_MAP()
+
+	if( !mask ) {
 		cout << "Invalid projection type " << type << endl;
 		throw 3001;
-		break;
 	}
 	return mask;
 }
@@ -180,6 +178,42 @@ void CopyPixelsWithMercator::UpdateBoundingBox(const char *mapref)
 	}
 }
 
+void CopyPixelsWithParisMercator::UpdateBoundingBox(const char *mapref)
+{
+	double dgLng = 0, dgLat = 0, dLng = 0, dLat = 0;
+	if (2 == sscanf(mapref, "%lf:%lf", &dgLat, &dgLng))
+	{
+		gConverter.ConvertParisToWgs84( dgLat * 0.9, dgLng * 0.9, dLat, dLng );
+
+		if (!boxset || gsouth > dLat)
+			gsouth = dLat;
+		if (!boxset || gnorth < dLat)
+			gnorth = dLat;
+		if (!boxset || geast < dLng)
+			geast = dLng;
+		if (!boxset || gwest > dLng)
+			gwest = dLng;
+		gVertx.clear();
+		gVerty.clear();
+
+		gVertx.push_back(gwest);
+		gVertx.push_back(geast);
+		gVertx.push_back(geast);
+		gVertx.push_back(gwest);
+
+		gVerty.push_back(gnorth);
+		gVerty.push_back(gnorth);
+		gVerty.push_back(gsouth);
+		gVerty.push_back(gsouth);
+
+		boxset = 1;
+	}
+	else
+	{
+		ThrowError("Invalid mercator reference", mapref);
+	}
+}
+
 int CopyPixelsWithOsMask::CheckIfInBox(double lat, double lon)
 {
 	double pnorth, peast, palt;
@@ -246,6 +280,21 @@ int CopyPixelsWithIrishBonne::CheckIfInBox(double lat, double lon)
 {
 	double pnorth, peast;
 	gConverter.ConvertWgs84ToBnI(lat, lon, 0.0, peast, pnorth);
+	if (pnorth < gsouth)
+		return 0;
+	if (pnorth > gnorth)
+		return 0;
+	if (peast < gwest)
+		return 0;
+	if (peast > geast)
+		return 0;
+	return 1;
+}
+
+int CopyPixelsWithFrenchBonne::CheckIfInBox(double lat, double lon)
+{
+	double pnorth, peast;
+	gConverter.ConvertWgs84ToBnF(lat, lon, 0.0, peast, pnorth);
 	if (pnorth < gsouth)
 		return 0;
 	if (pnorth > gnorth)

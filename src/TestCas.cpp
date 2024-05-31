@@ -36,5 +36,13 @@ int main()
   gConverter.ConvertWgs84ToOsi(53.5,-8,0.0, e, n, h);
   std::cout << e << "," << n << std::endl;
 
+  std::cout << "French Bonne" << std::endl;
+  gConverter.ConvertWgs84ToBnF(48.86, 2.33722222, 0.0, e, n );
+  std::cout << "Point zero " << e << "," << n << std::endl;
+  gConverter.ConvertWgs84ToBnF(47.968861, 5.209918, 0.0, e, n );
+  std::cout << "47.968861, 5.209918 " << e << "," << n << std::endl;
+  gConverter.ConvertWgs84ToBnF(47.995855, 2.339758, 0.0, e, n );
+  std::cout << "47.995855, 2.339758 " << e << "," << n << std::endl;
+
   return 0;
 }
