@@ -45,6 +45,7 @@ public:
 		Cassini,
 		BonneS,
 		BonneI,
+		BonneF,
 		OSI
 	} ProjType;
 
@@ -108,6 +109,8 @@ const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType
 	case PolyProjectArgs::BonneI:
 		gFallbackConverter.ConvertBnIToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
 		break;
+	case PolyProjectArgs::BonneF:
+		gFallbackConverter.ConvertBnFToWgs84(ref.x, ref.y, 0.0, lat, lon, alt );
 	}
 	if (projType != PolyProjectArgs::OSGB && !args->mercatorOut)
 	{
@@ -295,6 +298,10 @@ int main(int argc, char *argv[])
 		{
 			projType = PolyProjectArgs::BonneI;
 		}
+		if( inproj == "bonnef" )
+		{
+			projType = PolyProjectArgs::BonneF;
+		}
 		if (inproj == "osi")
 		{
 			projType = PolyProjectArgs::OSI;
@@ -362,6 +369,35 @@ int main(int argc, char *argv[])
 					west = iy;
 				if (iy > east || !setBox)
 					east = iy;
+
+				if (projType != PolyProjectArgs::Mercator)
+				{
+					cout << "Cannot take lat lon input when using OS as input projection" << endl;
+					exit(0);
+				}
+				else
+					srcImgToRef.AddPoint(imgX, imgY, ix, iy);
+
+				setBox = 1;
+			}
+			if (strcmp(line[0].GetVals(), "g") == 0)	// French maps are in grads
+			{
+				double imgX = line[3].GetVald();
+				double imgY = line[4].GetVald();
+				double ix = line[1].GetVald() / 0.9;
+				double iy = line[2].GetVald() / 0.9;
+				double lat = 0.0, lon = 0.0;
+				gConverter.ConvertParisToWgs84( ix, iy, lat, lon );
+
+				if (lat < south || !setBox)
+					south = lat;
+				if (lat > north || !setBox)
+					north = lat;
+				if (lon < west || !setBox)
+					west = lon;
+				if (lon > east || !setBox)
+					east = lon;
+				setBox = 1;
 
 				if (projType != PolyProjectArgs::Mercator)
 				{
@@ -465,6 +501,12 @@ int main(int argc, char *argv[])
 				dNorthing = line[2].GetVald();
 				gFallbackConverter.ConvertBnIToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
+			if (strcmp(line[0].GetVals(), "bnf") == 0)
+			{
+				dEasting = line[1].GetVald();
+				dNorthing = line[2].GetVald();
+				gFallbackConverter.ConvertBnFToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
+			}
 			if (lat != -1.0 && lon != -1.0)
 			{
 
@@ -503,6 +545,61 @@ int main(int argc, char *argv[])
 				// cout << "gbos " << dEasting << "," << dNorthing << "\t" << lat << "," << lon << endl;
 			}
 		}
+
+		if (line.NumVals() == 6) // Read in UTM data
+		{
+			int zone = 0;
+			double dEasting = 0, dNorthing = 0;
+			double imgX = line[4].GetVald();
+			double imgY = line[5].GetVald();
+			double lat = -1.0, lon = -1.0;
+			if (strcmp(line[0].GetVals(), "utm") == 0)
+			{
+				zone = line[2].GetVali();
+				dEasting = line[3].GetVald();
+				dNorthing = line[4].GetVald();
+
+				gConverter.ConvertUTM50ToWgs84( zone, dEasting, dNorthing, lat, lon);
+			}
+			if (lat != -1.0 && lon != -1.0)
+			{
+
+				cout << "conv " << zone << ":" << dEasting << "," << dNorthing << "->" << lat << "," << lon << endl;
+
+				// Add point to transform constraints
+				if (projType != PolyProjectArgs::Mercator)
+					srcImgToRef.AddPoint(imgX, imgY, dEasting, dNorthing);
+				else
+					srcImgToRef.AddPoint(imgX, imgY, lat, lon);
+
+				if (mercatorOut)
+				{
+					if (lat < south || !setBox)
+						south = lat;
+					if (lat > north || !setBox)
+						north = lat;
+					if (lon < west || !setBox)
+						west = lon;
+					if (lon > east || !setBox)
+						east = lon;
+					setBox = 1;
+				}
+				if (gbosOut)
+				{
+					if (dNorthing < south || !setBox)
+						south = dNorthing;
+					if (dNorthing > north || !setBox)
+						north = dNorthing;
+					if (dEasting < west || !setBox)
+						west = dEasting;
+					if (dEasting > east || !setBox)
+						east = dEasting;
+					setBox = 1;
+				}
+				// cout << "gbos " << dEasting << "," << dNorthing << "\t" << lat << "," << lon << endl;
+			}
+		}
+
 	}
 
 	if (corners.size() == 0)

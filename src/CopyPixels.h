@@ -68,6 +68,13 @@ public:
 	virtual int CheckIfInBox(double lat, double lon);
 };
 
+class CopyPixelsWithFrenchBonne : public CopyPixelsWithBonne
+{
+public:
+	CopyPixelsWithFrenchBonne() {}
+	virtual int CheckIfInBox(double lat, double lon);
+};
+
 class CopyPixelsWithMercator : public CopyPixels
 {
 public:
@@ -75,7 +82,14 @@ public:
 	virtual void UpdateBoundingBox(const char *mapref);
 	virtual int CheckIfInBox(double lat, double lon);
 
-private:
+protected:
 	std::vector<double> gVertx;
 	std::vector<double> gVerty;
+};
+
+class CopyPixelsWithParisMercator : public CopyPixelsWithMercator
+{
+public:
+	CopyPixelsWithParisMercator() {}
+	virtual void UpdateBoundingBox(const char *mapref);
 };

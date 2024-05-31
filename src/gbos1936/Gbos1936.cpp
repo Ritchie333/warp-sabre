@@ -12,6 +12,53 @@
 using namespace std;
 #include "Gbos1936.h"
 
+struct Ellip Airy( 6377563.3963534083, 6356256.909589071, 0.006670540000123428764, 0.081947147053796327738 );
+struct Ellip GRS80( 6378137, 6356752.314140356, 0.0066943800229007876, 0.0820944381519172 );
+struct Ellip Int24( 6378388, 6356911.946127946 );
+struct Ellip Plessis( 6376523.0, 6355862.9333 );
+
+struct Datum ED50 = { Int24, 86, 96, 120, 0, 0, 0, 0 };
+struct Datum WGS84 = { GRS80, 0, 0, 0, 0, 0, 0, 0 };
+struct Datum Michelin = { Plessis, 1118, 23, 66, 0, 0, 0, 0 };
+
+const double METRES_IN_MILE = 1609.347955248;
+
+struct Tmgriddata Make_UTM( const int zone )
+{
+    Tmgriddata utm;
+    utm.ellip = GRS80;
+    utm.F0 = 0.9996,
+    utm.Lat0 = 0.0;
+    utm.Lon0 = ( ( zone * 6 ) - 183 ) * ( M_PI / 180 );
+    utm.FE = 500000;
+    utm.FN = 0;
+    utm.e_min = 125000;
+    utm.e_max = 875000;
+    utm.n_min = 0;
+    utm.n_max = 9332300;
+    return utm;
+}
+
+double sech( double x )
+{
+    return 1 / cosh( x );
+}
+
+double arsinh( double x )
+{
+    return log( x + sqrt((x*x)+1));
+}
+
+double artanh( double x )
+{
+    return log((1+x)/(1-x))/2;
+}
+
+double sec2rad( double x )
+{
+    return ((M_PI*x)/648000);
+}
+
 double Marc(double bf0, double n, double PHI0, double PHI);
 double InitialLat(double North, double n0, double afo, double PHI0, double n, double bfo);
 double Iterate_XYZ_to_Lat(double a, double e2, double PHI1, double Z, double RootXYSqr);
@@ -31,10 +78,9 @@ double Helmert_X(double X, double Y, double Z, double DX, double Y_Rot, double Z
      Y and Z rotations in seconds of arc (Y_Rot, Z_Rot) and scale in ppm (s).*/
 
     //'Convert rotations to radians and ppm scale to a factor
-    double Pi = 3.14159265358979;
     double sfactor = s * 0.000001;
-    double RadY_Rot = (Y_Rot / 3600.0) * (Pi / 180.0);
-    double RadZ_Rot = (Z_Rot / 3600.0) * (Pi / 180.0);
+    double RadY_Rot = (Y_Rot / 3600.0) * (M_PI / 180.0);
+    double RadZ_Rot = (Z_Rot / 3600.0) * (M_PI / 180.0);
 
     // Compute transformed X coord
     return X + (X * sfactor) - (Y * RadZ_Rot) + (Z * RadY_Rot) + DX;
@@ -48,10 +94,9 @@ double Helmert_Y(double X, double Y, double Z, double DY, double X_Rot, double Z
      X and Z rotations in seconds of arc (X_Rot, Z_Rot) and scale in ppm (s).*/
 
     // Convert rotations to radians and ppm scale to a factor
-    double Pi = 3.14159265358979;
     double sfactor = s * 0.000001;
-    double RadX_Rot = (X_Rot / 3600.0) * (Pi / 180.0);
-    double RadZ_Rot = (Z_Rot / 3600.0) * (Pi / 180.0);
+    double RadX_Rot = (X_Rot / 3600.0) * (M_PI / 180.0);
+    double RadZ_Rot = (Z_Rot / 3600.0) * (M_PI / 180.0);
 
     // Compute transformed Y coord
     return (X * RadZ_Rot) + Y + (Y * sfactor) - (Z * RadX_Rot) + DY;
@@ -65,10 +110,9 @@ double Helmert_Z(double X, double Y, double Z, double DZ, double X_Rot, double Y
      X and Y rotations in seconds of arc (X_Rot, Y_Rot) and scale in ppm (s).*/
 
     // Convert rotations to radians and ppm scale to a factor
-    double Pi = 3.14159265358979;
     double sfactor = s * 0.000001;
-    double RadX_Rot = (X_Rot / 3600.0) * (Pi / 180.0);
-    double RadY_Rot = (Y_Rot / 3600.0) * (Pi / 180.0);
+    double RadX_Rot = (X_Rot / 3600.0) * (M_PI / 180.0);
+    double RadY_Rot = (Y_Rot / 3600.0) * (M_PI / 180.0);
 
     // Compute transformed Z coord
     return (-1.0 * X * RadY_Rot) + (Y * RadX_Rot) + Z + (Z * sfactor) + DZ;
@@ -89,9 +133,7 @@ double XYZ_to_Lat(double X, double Y, double Z, double a, double b)
 
     double PHI = Iterate_XYZ_to_Lat(a, e2, PHI1, Z, RootXYSqr);
 
-    double Pi = 3.14159265358979;
-
-    return PHI * (180.0 / Pi);
+    return PHI * (180.0 / M_PI);
 }
 
 double Iterate_XYZ_to_Lat(double a, double e2, double PHI1, double Z, double RootXYSqr)
@@ -127,8 +169,7 @@ double XYZ_to_Long(double X, double Y)
     'Input: -
      X and Y cartesian coords in meters.*/
 
-    double Pi = 3.14159265358979;
-    return (atan(Y / X)) * (180.0 / Pi);
+    return (atan(Y / X)) * (180.0 / M_PI);
 }
 
 double XYZ_to_H(double X, double Y, double Z, double a, double b)
@@ -143,8 +184,7 @@ double XYZ_to_H(double X, double Y, double Z, double a, double b)
     double PHI = XYZ_to_Lat(X, Y, Z, a, b);
 
     // Convert PHI radians
-    double Pi = 3.14159265358979;
-    double RadPHI = PHI * (Pi / 180.0);
+    double RadPHI = PHI * (M_PI / 180.0);
 
     // Compute H
     double RootXYSqr = sqrt((X * X) + (Y * Y));
@@ -163,9 +203,8 @@ double Lat_Long_H_to_X(double PHI, double LAM, double H, double a, double b)
      Ellipsoidal height (H) and ellipsoid axis dimensions (a & b) all in meters.*/
 
     // Convert angle measures to radians
-    double Pi = 3.14159265358979;
-    double RadPHI = PHI * (Pi / 180);
-    double RadLAM = LAM * (Pi / 180);
+    double RadPHI = PHI * (M_PI / 180);
+    double RadLAM = LAM * (M_PI / 180);
 
     // Compute eccentricity squared and nu
     double e2 = ((a * a) - (b * b)) / (a * a);
@@ -183,9 +222,8 @@ double Lat_Long_H_to_Y(double PHI, double LAM, double H, double a, double b)
      Ellipsoidal height (H) and ellipsoid axis dimensions (a & b) all in meters.*/
 
     // Convert angle measures to radians
-    double Pi = 3.14159265358979;
-    double RadPHI = PHI * (Pi / 180);
-    double RadLAM = LAM * (Pi / 180);
+    double RadPHI = PHI * (M_PI / 180);
+    double RadLAM = LAM * (M_PI / 180);
 
     // Compute eccentricity squared and nu
     double e2 = ((a * a) - (b * b)) / (a * a);
@@ -203,8 +241,7 @@ double Lat_H_to_Z(double PHI, double LAM, double H, double a, double b)
      Ellipsoidal height (H) and ellipsoid axis dimensions (a & b) all in meters.*/
 
     // Convert angle measures to radians
-    double Pi = 3.14159265358979;
-    double RadPHI = PHI * (Pi / 180);
+    double RadPHI = PHI * (M_PI / 180);
     // double RadLAM = LAM * (Pi / 180);
 
     // Compute eccentricity squared and nu
@@ -228,11 +265,10 @@ double Lat_Long_to_East(double PHI, double LAM, double a, double b, double e0, d
      latitude (PHI0) and longitude (LAM0) of false origin in decimal degrees.
     */
     // Convert angle measures to radians
-    double Pi = 3.14159265358979;
-    double RadPHI = PHI * (Pi / 180.0);
-    double RadLAM = LAM * (Pi / 180.0);
+    double RadPHI = PHI * (M_PI / 180.0);
+    double RadLAM = LAM * (M_PI / 180.0);
     // double RadPHI0 = PHI0 * (Pi / 180.0);
-    double RadLAM0 = LAM0 * (Pi / 180.0);
+    double RadLAM0 = LAM0 * (M_PI / 180.0);
 
     double af0 = a * f0;
     double bf0 = b * f0;
@@ -265,11 +301,10 @@ double Lat_Long_to_North(double PHI, double LAM, double a, double b, double e0, 
     'REQUIRES THE "Marc" FUNCTION
     */
     // Convert angle measures to radians
-    double Pi = 3.14159265358979;
-    double RadPHI = PHI * (Pi / 180.0);
-    double RadLAM = LAM * (Pi / 180.0);
-    double RadPHI0 = PHI0 * (Pi / 180.0);
-    double RadLAM0 = LAM0 * (Pi / 180.0);
+    double RadPHI = PHI * (M_PI / 180.0);
+    double RadLAM = LAM * (M_PI / 180.0);
+    double RadPHI0 = PHI0 * (M_PI / 180.0);
+    double RadLAM0 = LAM0 * (M_PI / 180.0);
 
     double af0 = a * f0;
     double bf0 = b * f0;
@@ -303,8 +338,7 @@ double E_N_to_Lat(double East, double North, double a, double b, double e0, doub
     'REQUIRES THE "Marc" AND "InitialLat" FUNCTIONS*/
 
     // Convert angle measures to radians
-    double Pi = 3.14159265358979;
-    double RadPHI0 = PHI0 * (Pi / 180.0);
+    double RadPHI0 = PHI0 * (M_PI / 180.0);
     // double RadLAM0 = LAM0 * (Pi / 180.0);
 
     // Compute af0, bf0, e squared (e2), n and Et
@@ -327,7 +361,7 @@ double E_N_to_Lat(double East, double North, double a, double b, double e0, doub
     double VIII = ((tan(PHId)) / (24.0 * rho * (pow(nu, 3.0)))) * (5.0 + (3.0 * pow((tan(PHId)), 2.0)) + eta2 - (9.0 * eta2 * pow((tan(PHId)), 2.0)));
     double IX = ((tan(PHId)) / (720.0 * rho * (pow(nu, 5.0)))) * (61.0 + (90.0 * pow((tan(PHId)), 2.0)) + (45.0 * pow((tan(PHId)), 4.0)));
 
-    return (180.0 / Pi) * (PHId - ((Et * Et) * VII) + (pow(Et, 4.0) * VIII) - (pow(Et, 6) * IX));
+    return (180.0 / M_PI) * (PHId - ((Et * Et) * VII) + (pow(Et, 4.0) * VIII) - (pow(Et, 6) * IX));
 }
 
 double E_N_to_Long(double East, double North, double a, double b, double e0, double n0, double f0, double PHI0, double LAM0)
@@ -347,9 +381,8 @@ double E_N_to_Long(double East, double North, double a, double b, double e0, dou
     /*    Pi = 3.14159265358979
         RadPHI0 = PHI0 * (Pi / 180)
         RadLAM0 = LAM0 * (Pi / 180)*/
-    double Pi = 3.14159265358979;
-    double RadPHI0 = PHI0 * (Pi / 180.0);
-    double RadLAM0 = LAM0 * (Pi / 180.0);
+    double RadPHI0 = PHI0 * (M_PI / 180.0);
+    double RadLAM0 = LAM0 * (M_PI / 180.0);
 
     // Compute af0, bf0, e squared (e2), n and Et
     /*    af0 = a * f0
@@ -381,7 +414,7 @@ double E_N_to_Long(double East, double North, double a, double b, double e0, dou
     double XII = (pow((cos(PHId)), -1.0) / (120.0 * pow(nu, 5))) * (5.0 + (28.0 * pow((tan(PHId)), 2.0)) + (24.0 * pow((tan(PHId)), 4.0)));
     double XIIA = (pow((cos(PHId)), -1.0) / (5040.0 * pow(nu, 7))) * (61.0 + (662.0 * pow((tan(PHId)), 2.0)) + (1320.0 * pow((tan(PHId)), 4.0)) + (720.0 * pow((tan(PHId)), 6.0)));
 
-    return (180.0 / Pi) * (RadLAM0 + (Et * X) - (pow(Et, 3.0) * XI) + (pow(Et, 5.0) * XII) - (pow(Et, 7.0) * XIIA));
+    return (180.0 / M_PI) * (RadLAM0 + (Et * X) - (pow(Et, 3.0) * XI) + (pow(Et, 5.0) * XII) - (pow(Et, 7.0) * XIIA));
 }
 
 double InitialLat(double North, double n0, double afo, double PHI0, double n, double bfo)
@@ -678,18 +711,16 @@ End Function*/
 void ConvertCasToWgs84(double ea, double no, double he,
                        double &latOut, double &lonOut, double &heOut)
 {
-    const double Pi = 3.14159265358979;
-    const double unit = 1609.347955248; // Metres in a mile
-    const long double a = (6377563.3963534083 / unit);
-    const long double b = (6356256.909589071 / unit);
+    const long double a = Airy.a / METRES_IN_MILE;
+    const long double b = Airy.b / METRES_IN_MILE;
     const long double e2 = ((a * a) - (b * b)) / (a * a);
     const int FE = 0;
     const int FN = 0;
     const int F0 = 1;
 
     // Lat and lon of origin in Delamere Forest, Cheshire
-    const long double Lat0 = 53.221465 * (Pi / 180.0);
-    const long double Lon0 = -2.68432278 * (Pi / 180.0);
+    const long double Lat0 = 53.221465 * (M_PI / 180.0);
+    const long double Lon0 = -2.68432278 * (M_PI / 180.0);
 
     // const long double QQ = ( 1 - ( e2 / 4 ) - ( ( 3 / 64 ) * pow( e2, 2 ) ) - ( ( 5 / 256 ) * pow( e2, 3 ) ) );
     const long double N = ((a - b) / (a + b));
@@ -728,23 +759,21 @@ void ConvertCasToWgs84(double ea, double no, double he,
     long double SS = ((1 + (3 * T1)) * T1 * (pow(D, 5) / 15));
     long double TT = ((D - RR + SS) / cos(w1));
 
-    double gboslat = MM * (180 / Pi);
-    double gboslng = (Lon0 + TT) * (180 / Pi);
+    double gboslat = MM * (180 / M_PI);
+    double gboslng = (Lon0 + TT) * (180 / M_PI);
 
     ConvertGbos1936LatLngToWgs84(gboslat, gboslng, he, latOut, lonOut, heOut);
 }
 
-void ConvertBnToWgs84(double orglat, double orglon, double ea, double no, double he,
+void ConvertBnToMercator(const struct Ellip& ellip, const double sf, double orglat, double orglon, double ea, double no, double he,
                       double &latOut, double &lonOut, double &heOut)
 {
-    const double Pi = 3.14159265358979;
-    const double unit = 1609.347955248; // Metres in a mile
-    const double a = (6377563.396353409 / unit);
-    const double b = (6356256.909589071 / unit);
+    const double a = ellip.a / sf;
+    const double b = ellip.b / sf;
     const int FE = 0;
     const int FN = 0;
-    const double Lat0 = orglat * (Pi / 180.0);
-    const double Lon0 = orglon * (Pi / 180.0);
+    const double Lat0 = orglat * (M_PI / 180.0);
+    const double Lon0 = orglon * (M_PI / 180.0);
     const double e2 = ((a * a) - (b * b)) / (a * a);
 
     double X = ea - FE;
@@ -777,7 +806,7 @@ void ConvertBnToWgs84(double orglat, double orglon, double ea, double no, double
 
     double lat = (u + inter1 + inter2 + inter3 + inter4);
     double lon = 0.0;
-    if (fabs((180 / Pi) * lat) < 89.99999999 || fabs((180 / Pi) * lat) > 90.00000001)
+    if (fabs((180 / M_PI) * lat) < 89.99999999 || fabs((180 / M_PI) * lat) > 90.00000001)
     {
         double h = cos(lat) / sqrt(1 - (e2 * pow(sin(lat), 2)));
         double QQ = Lon0 + (p * (atan(X / (((a * h0) / sin(Lat0)) - Y))) / (a * h));
@@ -796,9 +825,9 @@ void ConvertBnToWgs84(double orglat, double orglon, double ea, double no, double
         lon = Lon0;
     }
 
-    double gboslat = lat * (180 / Pi);
-    double gboslng = lon * (180 / Pi);
-    ConvertGbos1936LatLngToWgs84(gboslat, gboslng, he, latOut, lonOut, heOut);
+    latOut = lat * (180 / M_PI);
+    lonOut = lon * (180 / M_PI);
+    heOut = 0;
 }
 
 void ConvertGbos1936ToWgs84(double ea, double no, double he,
@@ -813,7 +842,6 @@ void ConvertGbos1936ToWgs84(double ea, double no, double he,
 void ConvertOsiToWgs84(double ea, double no, double he,
                        double &latOut, double &lonOut, double &heOut)
 {
-    const double Pi = 3.14159265358979;
     double a = 6377340.189446778;
     double b = 6356034.448383377;
     double n = ((a - b) / (a + b));
@@ -863,8 +891,8 @@ void ConvertOsiToWgs84(double ea, double no, double he,
 
     ConvertOsi65ToWgs84(lati, loni, r_latOut, r_lonOut);
 
-    latOut = r_latOut * (180 / Pi);
-    lonOut = r_lonOut * (180 / Pi);
+    latOut = r_latOut * (180 / M_PI);
+    lonOut = r_lonOut * (180 / M_PI);
 
     heOut = 0;
 }
@@ -901,10 +929,9 @@ void ConvertWgs84ToGbos1936(double lat, double lon, double he,
 void ConvertWgs84ToOsi(double lat, double lon, double he,
                        double &eaOut, double &noOut, double &heOut)
 {
-    const double Pi = 3.14159265358979;
     double r_lat = 0;
     double r_lon = 0;
-    ConvertWgs84ToOsi65(lat * (Pi / 180), lon * (Pi / 180), r_lat, r_lon);
+    ConvertWgs84ToOsi65(lat * (M_PI / 180), lon * (M_PI / 180), r_lat, r_lon);
     double a = 6377340.189446778;
     double b = 6356034.448383377;
     double n = ((a - b) / (a + b));
@@ -948,16 +975,14 @@ void ConvertWgs84ToOsi(double lat, double lon, double he,
 void ConvertWgs84ToCas(double wlat, double wlon, double he,
                        double &eaOut, double &noOut)
 {
-    const double Pi = 3.14159265358979;
-    const double unit = 1609.347955248; // Metres in a mile
-    const double a = (6377563.396353409 / unit);
-    const double b = (6356256.909589071 / unit);
+    const double a = Airy.a / METRES_IN_MILE;
+    const double b = Airy.b / METRES_IN_MILE;
     const int FE = 0;
     const int FN = 0;
 
     // Lat and lon of origin in Delamere Forest, Cheshire
-    const long double Lat0 = 53.221465 * (Pi / 180.0);
-    const long double Lon0 = -2.68432278 * (Pi / 180.0);
+    const long double Lat0 = 53.221465 * (M_PI / 180.0);
+    const long double Lon0 = -2.68432278 * (M_PI / 180.0);
 
     const long double e2 = ((a * a) - (b * b)) / (a * a);
 
@@ -965,8 +990,8 @@ void ConvertWgs84ToCas(double wlat, double wlon, double he,
     double gbos36lon2 = 0.0;
     ConvertWgs84ToGbos1936LatLng(wlat, wlon, he, gbos36lat2, gbos36lon2);
 
-    long double lat = gbos36lat2 * (Pi / 180.0);
-    long double lon = gbos36lon2 * (Pi / 180.0);
+    long double lat = gbos36lat2 * (M_PI / 180.0);
+    long double lon = gbos36lon2 * (M_PI / 180.0);
 
     long double v = a / sqrt((1 - (e2 * pow(sin(lat), 2))));
     long double T = pow(tan(lat), 2);
@@ -983,26 +1008,19 @@ void ConvertWgs84ToCas(double wlat, double wlon, double he,
     noOut = FN + M - M0 + (v * tan(lat) * FF);
 }
 
-void ConvertWgs84ToBn(const double orglat, const double orglon,
-                      double wlat, double wlon, double he,
-                      double &eaOut, double &noOut)
+void ConvertMercatorToBn(const struct Ellip& ellip, const double sf, const double orglat, const double orglon,
+	double lat, double lon, double he, double &eaOut, double &noOut)
 {
-    const double Pi = 3.14159265358979;
-    const double unit = 1609.347955248; // Metres in a mile
-    const double a = (6377563.396353409 / unit);
-    const double b = (6356256.909589071 / unit);
+    const double a = ellip.a / sf;
+    const double b = ellip.b / sf;
     const int FE = 0;
     const int FN = 0;
-    const double Lat0 = orglat * (Pi / 180.0);
-    const double Lon0 = orglon * (Pi / 180.0);
+    const double Lat0 = orglat * (M_PI / 180.0);
+    const double Lon0 = orglon * (M_PI / 180.0);
     const double e2 = ((a * a) - (b * b)) / (a * a);
 
-    double gbos36lat2 = 0.0;
-    double gbos36lon2 = 0.0;
-    ConvertWgs84ToGbos1936LatLng(wlat, wlon, he, gbos36lat2, gbos36lon2);
-
-    double lat = gbos36lat2 * (Pi / 180.0);
-    double lon = gbos36lon2 * (Pi / 180.0);
+    lat = lat * (M_PI / 180.0);
+    lon = lon * (M_PI / 180.0);
 
     double h = (cos(lat) / sqrt(1 - (e2 * pow(sin(lat), 2))));
     double h0 = (cos(Lat0) / sqrt(1 - (e2 * pow(sin(Lat0), 2))));
@@ -1152,7 +1170,6 @@ void ConvertWgs84ToOsi65(double lat, double lon, double &latOut, double &lonOut)
 
 void GetOsiShift(double lat, double lon, double &latOut, double &lonOut)
 {
-    const double Pi = 3.14159265358979;
     const double osiA[4][4] =
         {
             {0.763, 0.123, 0.183, -0.374},
@@ -1170,8 +1187,8 @@ void GetOsiShift(double lat, double lon, double &latOut, double &lonOut)
     const double osik0 = 0.1;
     const double osilatm = 53.5;
     const double osilonm = -7.7;
-    double n_U = osik0 * ((lat * (180 / Pi)) - osilatm);
-    double n_V = osik0 * ((lon * (180 / Pi)) - osilonm);
+    double n_U = osik0 * ((lat * (180 / M_PI)) - osilatm);
+    double n_V = osik0 * ((lon * (180 / M_PI)) - osilonm);
     double dlat = 0;
     double dlon = 0;
     double coeff = 1;
@@ -1184,8 +1201,109 @@ void GetOsiShift(double lat, double lon, double &latOut, double &lonOut)
             dlon += (osiB[xx][yy] * coeff);
         }
     }
-    latOut = (dlat / 3600) * (Pi / 180);
-    lonOut = (dlon / 3600) * (Pi / 180);
+    latOut = (dlat / 3600) * (M_PI / 180);
+    lonOut = (dlon / 3600) * (M_PI / 180);
+}
+
+void TM2Geo( double east, double north, const Tmgriddata& TMgrid, double& latOut, double& lngOut )
+{
+    double a = TMgrid.ellip.a;
+    double b = TMgrid.ellip.b;
+    double n = ((a-b)/(a+b));
+    double e2 = TMgrid.ellip.e2;
+    double A1 = a/(1+n)*(n*n*(n*n*((n*n)+4)+64)+256)/256;
+    double h1 = n*(n*(n*(n*(n*(384796*n-382725)-6720)+932400)-1612800)+1209600)/2419200;
+    double h2 = n*n*(n*(n*((1695744-1118711*n)*n-1174656)+258048)+80640)/3870720;
+    double h3 = n*n*n*(n*(n*(22276*n-16929)-15984)+12852)/362880;
+    double h4 = n*n*n*n*((-830251*n-158400)*n+197865)/7257600;
+    double h5 = (453717-435388*n)*n*n*n*n*n/15966720;
+    double h6 = 20648693*n*n*n*n*n*n/638668800;
+    double M = calc_M(TMgrid.Lat0,TMgrid.Lat0,n,b,TMgrid.F0);
+    double E = (north-TMgrid.FN+M)/(A1*TMgrid.F0);
+    double nn = (east-TMgrid.FE)/(A1*TMgrid.F0);
+    double E1i = h1*sin(2*E)*cosh(2*nn);
+    double E2i = h2*sin(4*E)*cosh(4*nn);
+    double E3i = h3*sin(6*E)*cosh(6*nn);
+    double E4i = h4*sin(8*E)*cosh(8*nn);
+    double E5i = h5*sin(10*E)*cosh(10*nn);
+    double E6i = h6*sin(12*E)*cosh(12*nn);
+    double n1i = h1*cos(2*E)*sinh(2*nn);
+    double n2i = h2*cos(4*E)*sinh(4*nn);
+    double n3i = h3*cos(6*E)*sinh(6*nn);
+    double n4i = h4*cos(8*E)*sinh(8*nn);
+    double n5i = h5*cos(10*E)*sinh(10*nn);
+    double n6i = h6*cos(12*E)*sinh(12*nn);
+    double Ei = E-(E1i+E2i+E3i+E4i+E5i+E6i);
+    double ni = nn-(n1i+n2i+n3i+n4i+n5i+n6i);
+    double B = asin(sech(ni)*sin(Ei));
+    double l = asin(tanh(ni)/cos(B));
+    double Q = asinh(tan(B));
+    double Qi = Q+(sqrt(e2)*artanh(sqrt(e2)*tanh(Q)));
+    double complete = false;
+    do {
+       double newv = Q+(sqrt(e2)*artanh(sqrt(e2)*tanh(Qi)));
+       if (fabs(Qi-newv) < 1e-11) { complete = true; }
+       Qi = newv; 
+    } while (complete == false);
+    latOut = atan(sinh(Qi));
+    lngOut = TMgrid.Lon0+l;
+}
+
+void Geo2Geo( double dlat, double dlon, const struct Datum& datum_a, const struct Datum& datum_b, double& latOut, double &lngOut )
+{
+    double lat = dlat * ( M_PI / 180 );
+    double lon = dlon * ( M_PI / 180 );
+    double N = datum_a.ellipsoid.a/sqrt(1-(datum_a.ellipsoid.e2*pow(sin(lat),2)));
+    double Xa = N*cos(lat)*cos(lon);
+    double Ya = N*cos(lat)*sin(lon);
+    double Za = N*(1-datum_a.ellipsoid.e2)*sin(lat);
+    double Xm = 0;
+    double Ym = 0;
+    double Zm = 0;
+    if (datum_a == WGS84) {
+        Xm = Xa; Ym = Ya; Zm = Za;
+    } else {
+        double dX = datum_a.dX; double dY = datum_a.dY; double dZ = datum_a.dZ; double sf = datum_a.sf*1e-6;
+        double rX = sec2rad(datum_a.rX); double rY = sec2rad(datum_a.rY); double rZ = sec2rad(datum_a.rZ);
+        double Xt = (Xa-dX)/(1+sf); double Yt = (Ya-dY)/(1+sf); double Zt = (Za-dZ)/(1+sf);
+        Xm = (Xt+(rZ*Yt)-(rY*Zt));
+        Ym = (Yt+(rX*Zt)-(rZ*Xt));
+        Zm = (Zt+(rY*Xt)-(rX*Yt));
+    }
+    double X = 0;
+    double Y = 0;
+    double Z = 0;
+    if (datum_b == WGS84) {
+        X = Xm; Y = Ym; Z = Zm;
+    } else {
+        double dX2 = datum_b.dX; double dY2 = datum_b.dY; double dZ2 = datum_b.dZ; double sf2 = datum_b.sf*1e-6;
+        double rX2 = sec2rad(datum_b.rX); double rY2 = sec2rad(datum_b.rY); double rZ2 = sec2rad(datum_b.rZ);
+        X = dX2 + ((1+sf2)*(Xm-(rZ2*Ym)+(rY2*Zm)));
+        Y = dY2 + ((1+sf2)*((rZ2*Xm)+Ym-(rX2*Zm)));
+        Z = dZ2 + ((1+sf2)*((rX2*Ym)-(rY2*Xm)+Zm));
+    }
+    double ei2 = (pow(datum_b.ellipsoid.a,2)-pow(datum_b.ellipsoid.b,2))/pow(datum_b.ellipsoid.b,2);
+    double p = sqrt(pow(X,2) + pow(Y,2));
+    double theta = atan((Z*datum_b.ellipsoid.a)/(p*datum_b.ellipsoid.b));
+    double ttop = Z+(ei2*datum_b.ellipsoid.b*pow(sin(theta),3));
+    double bbot = p-(datum_b.ellipsoid.e2*datum_b.ellipsoid.a*pow(cos(theta),3));
+    latOut = atan(ttop/bbot) * ( 180 / M_PI );
+    lngOut = atan2(Y,X) * ( 180 / M_PI );
+}
+
+void ConvertParisToWgs84(double lat, double lon, double &latOut, double &lonOut )
+{
+    Geo2Geo( lat, lon, Michelin, WGS84, latOut, lonOut );
+}
+
+void ConvertWgs84ToParis(double lat, double lon, double &latOut, double &lonOut )
+{
+    Geo2Geo( lat, lon, WGS84, Michelin, latOut, lonOut );
+}
+
+void GetParisOrigin( double& latOut, double& lonOut )
+{
+    ConvertWgs84ToParis( 48.836439, 2.336506, latOut, lonOut );
 }
 
 //***************************************************
@@ -1227,13 +1345,31 @@ void HelmertConverter::ConvertCasToWgs84(double lat, double lon, double he,
 void HelmertConverter::ConvertBnSToWgs84(double lat, double lon, double he,
                                          double &eaOut, double &noOut, double &heOut)
 {
-    ::ConvertBnToWgs84(57.5, -4, lat, lon, he, eaOut, noOut, heOut);
+    double gboslat = 0;
+    double gboslng = 0;
+    ::ConvertBnToMercator(Airy, METRES_IN_MILE, 57.5, -4, lat, lon, he, gboslat, gboslng, heOut );
+    ::ConvertGbos1936LatLngToWgs84(gboslat, gboslng, he, eaOut, eaOut, heOut);
 }
 
 void HelmertConverter::ConvertBnIToWgs84(double lat, double lon, double he,
                                          double &eaOut, double &noOut, double &heOut)
 {
-    ::ConvertBnToWgs84(53.5, -8, lat, lon, he, eaOut, noOut, heOut);
+    double gboslat = 0;
+    double gboslng = 0;
+    ::ConvertBnToMercator(Airy, METRES_IN_MILE, 53.5, -8, lat, lon, he, gboslat, gboslng, heOut );
+    ::ConvertGbos1936LatLngToWgs84(gboslat, gboslng, he, eaOut, eaOut, heOut);
+}
+
+void HelmertConverter::ConvertBnFToWgs84(double ea, double no, double he,
+							double &latOut, double &lonOut, double &heOut )
+{
+    double origlat = 0;
+    double origlon = 0;
+    GetParisOrigin( origlat, origlon );
+    double frlat = 0;
+    double frlon = 0;
+    ::ConvertBnToMercator(Plessis, 1000, origlat, origlon, ea, no, he, frlat, frlon, heOut );
+    ::ConvertParisToWgs84( frlat, frlon, latOut, lonOut );
 }
 
 void HelmertConverter::ConvertWgs84ToCas(double lat, double lon, double he,
@@ -1245,11 +1381,48 @@ void HelmertConverter::ConvertWgs84ToCas(double lat, double lon, double he,
 void HelmertConverter::ConvertWgs84ToBnS(double lat, double lon, double he,
                                          double &eaOut, double &noOut)
 {
-    ::ConvertWgs84ToBn(57.5, -4, lat, lon, he, eaOut, noOut);
+    double gboslat = 0;
+    double gboslon = 0;
+    ::ConvertWgs84ToGbos1936LatLng( lat, lon, he, gboslat, gboslon );
+    ::ConvertMercatorToBn(Airy, METRES_IN_MILE, 57.5, -4, gboslat, gboslon, he, eaOut, noOut);
 }
 
 void HelmertConverter::ConvertWgs84ToBnI(double lat, double lon, double he,
                                          double &eaOut, double &noOut)
 {
-    ::ConvertWgs84ToBn(53.5, -8, lat, lon, he, eaOut, noOut);
+    double gboslat = 0;
+    double gboslon = 0;
+    ::ConvertWgs84ToGbos1936LatLng( lat, lon, he, gboslat, gboslon );
+    ::ConvertMercatorToBn(Airy, METRES_IN_MILE, 53.5, -8, gboslat, gboslon, he, eaOut, noOut);
+}
+
+void HelmertConverter::ConvertWgs84ToBnF(double lat, double lon, double he, double &eaOut, double &noOut )
+{
+    double origlat = 0;
+    double origlon = 0;
+    GetParisOrigin( origlat, origlon );
+    double parislat = 0;
+    double parislon = 0;
+    ::ConvertWgs84ToParis( lat, lon, parislat, parislon );
+    ::ConvertMercatorToBn(Plessis, 1000, origlat, origlon, parislat, parislon, he, eaOut, noOut );
+}
+
+void HelmertConverter::ConvertUTM50ToWgs84( const int zone, double ea, double no,
+    double &latOut, double &lonOut )
+{
+    Tmgriddata tmgrid = Make_UTM( zone );
+    double lated50 = 0;
+    double loned50 = 0;
+    ::TM2Geo( ea, no, tmgrid, lated50, loned50 );
+    ::Geo2Geo( lated50, loned50, ED50, WGS84, latOut, lonOut );
+}
+
+void HelmertConverter::ConvertParisToWgs84(double glat, double glon, double &latOut, double &lonOut )
+{
+    ::ConvertParisToWgs84( glat, glon, latOut, lonOut );
+}
+
+void HelmertConverter::ConvertWgs84ToParis(double lat, double lon, double &glatOut, double &glonOut )
+{
+    ::ConvertWgs84ToParis( lat, lon, glatOut, glonOut );
 }
