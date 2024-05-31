@@ -114,6 +114,11 @@ add_executable(clearbounds
     src/gbos1936/Gbos1936.cpp
 )
 
+add_executable(testcas
+    src/TestCas.cpp
+    src/gbos1936/Gbos1936.cpp
+)
+
 target_include_directories(warp-sabre PUBLIC
     ${PROJECT_SOURCE_DIR}/libmorph
     ${PROJECT_SOURCE_DIR}/newmat-10

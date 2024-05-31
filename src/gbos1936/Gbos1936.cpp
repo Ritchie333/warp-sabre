@@ -1303,7 +1303,7 @@ void ConvertWgs84ToParis(double lat, double lon, double &latOut, double &lonOut 
 
 void GetParisOrigin( double& latOut, double& lonOut )
 {
-    ConvertWgs84ToParis( 48.86, 2.33722222, latOut, lonOut );
+    ConvertWgs84ToParis( 48.836439, 2.336506, latOut, lonOut );
 }
 
 //***************************************************
