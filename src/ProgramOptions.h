@@ -20,7 +20,7 @@ public:
 
     const bool HasArg(const char *arg);
 
-    ArgsIterator GetArgIterator(const char *arg);
+    ArgsIterator GetArgIterator(const char *arg, bool& found);
 
 private:
     std::vector<std::string> args;

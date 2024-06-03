@@ -19,7 +19,8 @@ void ProgramOptions::AddAlias(const char shortName, const char *longName)
 const std::string ProgramOptions::GetArg(const char *arg)
 {
     std::string result;
-    ArgsIterator it = GetArgIterator(arg);
+    bool found = false;
+    ArgsIterator it = GetArgIterator(arg, found);
     if (it != args.end())
     {
         result = *it;
@@ -30,7 +31,8 @@ const std::string ProgramOptions::GetArg(const char *arg)
 const int ProgramOptions::GetIntArg(const char *arg)
 {
     int result = 0;
-    ArgsIterator it = GetArgIterator(arg);
+    bool found = false;
+    ArgsIterator it = GetArgIterator(arg, found);
     if (it != args.end())
     {
         result = stoi(*it);
@@ -41,7 +43,8 @@ const int ProgramOptions::GetIntArg(const char *arg)
 const std::vector<std::string> ProgramOptions::GetMultiArg(const char *arg)
 {
     std::vector<std::string> result;
-    ArgsIterator it = GetArgIterator(arg);
+    bool found = false;
+    ArgsIterator it = GetArgIterator(arg, found);
     if (it != args.end())
     {
         for (; it != args.end(); it++)
@@ -64,12 +67,15 @@ const std::vector<std::string> ProgramOptions::GetMultiArg(const char *arg)
 
 const bool ProgramOptions::HasArg(const char *arg)
 {
-    return GetArgIterator(arg) != args.end();
+    bool found = false;
+    GetArgIterator(arg, found );
+    return found;
 }
 
 // Return the position in the arg list after this one
-ProgramOptions::ArgsIterator ProgramOptions::GetArgIterator(const char *arg)
+ProgramOptions::ArgsIterator ProgramOptions::GetArgIterator(const char *arg, bool& found)
 {
+    found = false;
     // std::cout << "GetArgIterator " << arg << std::endl;
     for (ArgsIterator it = args.begin(); it != args.end(); it++)
     {
@@ -85,6 +91,7 @@ ProgramOptions::ArgsIterator ProgramOptions::GetArgIterator(const char *arg)
                 // std::cout << "GetArgIterator double switch " << cmdSwitch << std::endl;
                 if (arg && cmdSwitch == arg)
                 {
+                    found = true;
                     return ++it;
                 }
                 else
@@ -106,6 +113,7 @@ ProgramOptions::ArgsIterator ProgramOptions::GetArgIterator(const char *arg)
                     // std::cout << "GetArgIterator alias " << ita->first << " " << ita->second << std::endl;
                     if (arg && ita->second == arg)
                     {
+                        found = true;
                         return ++it;
                     }
                     else
@@ -123,6 +131,7 @@ ProgramOptions::ArgsIterator ProgramOptions::GetArgIterator(const char *arg)
             // std::cout << "empty arg" << std::endl;
             if (!arg && it != args.end())
             {
+                found = true;
                 return it;
             }
         }
