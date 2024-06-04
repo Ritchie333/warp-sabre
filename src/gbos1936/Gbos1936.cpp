@@ -1348,7 +1348,7 @@ void HelmertConverter::ConvertBnSToWgs84(double lat, double lon, double he,
     double gboslat = 0;
     double gboslng = 0;
     ::ConvertBnToMercator(Airy, METRES_IN_MILE, 57.5, -4, lat, lon, he, gboslat, gboslng, heOut );
-    ::ConvertGbos1936LatLngToWgs84(gboslat, gboslng, he, eaOut, eaOut, heOut);
+    ::ConvertGbos1936LatLngToWgs84(gboslat, gboslng, he, eaOut, noOut, heOut);
 }
 
 void HelmertConverter::ConvertBnIToWgs84(double lat, double lon, double he,
@@ -1357,7 +1357,7 @@ void HelmertConverter::ConvertBnIToWgs84(double lat, double lon, double he,
     double gboslat = 0;
     double gboslng = 0;
     ::ConvertBnToMercator(Airy, METRES_IN_MILE, 53.5, -8, lat, lon, he, gboslat, gboslng, heOut );
-    ::ConvertGbos1936LatLngToWgs84(gboslat, gboslng, he, eaOut, eaOut, heOut);
+    ::ConvertGbos1936LatLngToWgs84(gboslat, gboslng, he, eaOut, noOut, heOut);
 }
 
 void HelmertConverter::ConvertBnFToWgs84(double ea, double no, double he,
