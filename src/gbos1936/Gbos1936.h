@@ -13,6 +13,9 @@
 // Other conversions by Ed Fielden
 // Ported to C++ By Ritchie Swann
 
+#define PARIS_CENTRE_LAT 48.836439
+#define PARIS_CENTRE_LON 2.336506
+
 struct Ellip
 {
 	double a;

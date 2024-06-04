@@ -384,10 +384,10 @@ int main(int argc, char *argv[])
 			{
 				double imgX = line[3].GetVald();
 				double imgY = line[4].GetVald();
-				double ix = line[1].GetVald() / 0.9;
-				double iy = line[2].GetVald() / 0.9;
+				double ix = ( line[1].GetVald() * 0.9 ) + PARIS_CENTRE_LON;
+				double iy = line[2].GetVald() * 0.9;
 				double lat = 0.0, lon = 0.0;
-				gConverter.ConvertParisToWgs84( ix, iy, lat, lon );
+				gConverter.ConvertParisToWgs84( iy, ix, lat, lon );
 
 				if (lat < south || !setBox)
 					south = lat;
@@ -434,7 +434,7 @@ int main(int argc, char *argv[])
 				if (projType != PolyProjectArgs::Mercator)
 					srcImgToRef.AddPoint(imgX, imgY, dEasting, dNorthing);
 				else
-					srcImgToRef.AddPoint(imgX, imgY, lat, lon);
+					srcImgToRef.AddPoint(imgX, imgY, lon, lat);
 
 				if (mercatorOut)
 				{
@@ -516,7 +516,7 @@ int main(int argc, char *argv[])
 				if (projType != PolyProjectArgs::Mercator)
 					srcImgToRef.AddPoint(imgX, imgY, dEasting, dNorthing);
 				else
-					srcImgToRef.AddPoint(imgX, imgY, lat, lon);
+					srcImgToRef.AddPoint(imgX, imgY, lon, lat);
 
 				if (mercatorOut)
 				{
@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
 				if (projType != PolyProjectArgs::Mercator)
 					srcImgToRef.AddPoint(imgX, imgY, dEasting, dNorthing);
 				else
-					srcImgToRef.AddPoint(imgX, imgY, lat, lon);
+					srcImgToRef.AddPoint(imgX, imgY, lon, lat);
 
 				if (mercatorOut)
 				{

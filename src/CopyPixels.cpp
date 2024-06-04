@@ -183,7 +183,7 @@ void CopyPixelsWithParisMercator::UpdateBoundingBox(const char *mapref)
 	double dgLng = 0, dgLat = 0, dLng = 0, dLat = 0;
 	if (2 == sscanf(mapref, "%lf:%lf", &dgLat, &dgLng))
 	{
-		gConverter.ConvertParisToWgs84( dgLat * 0.9, dgLng * 0.9, dLat, dLng );
+		gConverter.ConvertParisToWgs84( dgLat / 0.9, ( dgLng / 0.9 ) - PARIS_CENTRE_LON, dLat, dLng );
 
 		if (!boxset || gsouth > dLat)
 			gsouth = dLat;
