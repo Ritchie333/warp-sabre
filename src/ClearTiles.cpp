@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 		// if(ret < 0){cout << "Filed to open image" << endl;exit(0);}
 		// last.bounds.push_back("NR550000");
 		// last.bounds.push_back("NR950450");
-		string filenameNoPath = RemoveFilePath(argv[i]);
+		string filenameNoPath = RemoveFilePath(filePath.c_str());
 		vector<string> boundsTemp;
 		string projType;
 		GetBounds(boundsFile, filenameNoPath.c_str(), boundsTemp, projType);
