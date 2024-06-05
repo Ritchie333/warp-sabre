@@ -40,6 +40,10 @@ int main()
   //gConverter.ConvertWgs84ToBnF(48.86, 2.33722222, 0.0, e, n );
   gConverter.ConvertWgs84ToBnF(48.836439, 2.336506, 0.0, e, n );
   std::cout << "Point zero " << e << "," << n << std::endl;
+
+  gConverter.ConvertWgs84ToParis(48.836439, 2.336506, lat, lon);
+  std::cout << lat << "," << lon << std::endl;
+
   gConverter.ConvertWgs84ToBnF(47.957873, -0.543229, 0.0, e, n );
   std::cout << "47.957873, -0.543229 " << e << "," << n << std::endl;
   gConverter.ConvertBnFToWgs84( -215, -93.5, 0.0, lat, lon, alt );
