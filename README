@@ -5,7 +5,8 @@ mapping at SABRE Maps (https://www.sabre-roads.org.uk/maps).
 It is derived off a suite of OpenStreetMap tools called warp-gbos (that
 was used to produce the New Popular and Seventh Series tiles there,
 that pre-date SABRE Maps) with some extra bells and whistles to handle
-archaic things such as the MOT maps.
+archaic things such as the MOT maps. Support is currently being added
+to handle Michelin maps of Western Europe.
 
 ==Features==
 
@@ -15,11 +16,14 @@ The suite currently supports the following:
     WGS84 Lat/Lon
     Cassini (as used on England and Wales MoT maps)
     Scottish Bonne (as used on Scottish MoT maps)
+    Irish Bonne (used on old Irish maps)
+    Irish Grid (OSI65) as used on OSI and OSNI mapping
+    Michelin datum with Plessi ellipsoid (used for Michelin maps of Europe)
+    French Bonne (used on Michelin maps)
 
 It does not currently support (but will in the future):
 
     Ordnance Survey GB National Yard Grid (but conversion can be done manually)
-    Irish Grid as used on OSI and OSNI mapping
     OSGB36 Lat/Lon
 
 ==Programs==
