@@ -384,8 +384,8 @@ int main(int argc, char *argv[])
 			{
 				double imgX = line[3].GetVald();
 				double imgY = line[4].GetVald();
-				double ix = ( line[1].GetVald() * 0.9 ) + PARIS_CENTRE_LON;
-				double iy = line[2].GetVald() * 0.9;
+				double ix = ( line[2].GetVald() * 0.9 ) + PARIS_CENTRE_LON;
+				double iy = line[1].GetVald() * 0.9;
 				double lat = 0.0, lon = 0.0;
 				gConverter.ConvertParisToWgs84( iy, ix, lat, lon );
 
