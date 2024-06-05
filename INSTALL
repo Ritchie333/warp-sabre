@@ -1,5 +1,5 @@
 The following libraries are required:
-* Boost - for odds and ends (mainly used for parsing command line arguments)
+* Boost - for odds and ends (mainly multi-threaded support)
 * ImageMagick 7 - for loading and saving images
 * LibXML - for parsing Google Earth KML files
 * Newmat - for the matrix transformations used when rectifying map images
