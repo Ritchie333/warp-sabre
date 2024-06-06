@@ -47,13 +47,16 @@ int main()
   gConverter.ConvertWgs84ToBnF(47.957873, -0.543229, 0.0, e, n );
   std::cout << "47.957873, -0.543229 " << e << "," << n << std::endl;
   gConverter.ConvertBnFToWgs84( -215, -93.5, 0.0, lat, lon, alt );
-  std::cout << "-215, -93.75 " << lat << "," << lon << std::endl;
+  std::cout << "-215, -93.5 " << lat << "," << lon << std::endl;
+
+  gConverter.ConvertWgs84ToBnF( 47.95875392, -0.31017671, 0.0, e, n );
+  std::cout << "47.95875392, -0.31017671 " << e << "," << n << std::endl;
 
   gConverter.ConvertWgs84ToBnF(47.955808, 5.214928, 0.0, e, n );
   std::cout << "47.955808, 5.214928 " << e << "," << n << std::endl;
 
   gConverter.ConvertBnFToWgs84( 215, -93.5, 0.0, lat, lon, alt );
-  std::cout << "215, -93.75 " << lat << "," << lon << std::endl;
+  std::cout << "215, -93.5 " << lat << "," << lon << std::endl;
   
   gConverter.ConvertWgs84ToBnF( 43.205239, 0.559556, 0.0, e, n );
   std::cout << "43.205239, 0.559556 " << e << "," << n << std::endl;
