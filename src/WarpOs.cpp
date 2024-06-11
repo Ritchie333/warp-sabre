@@ -358,17 +358,17 @@ int main(int argc, char *argv[])
 			{
 				double imgX = line[3].GetVald();
 				double imgY = line[4].GetVald();
-				double ix = line[1].GetVald();
-				double iy = line[2].GetVald();
+				double ix = line[2].GetVald();
+				double iy = line[1].GetVald();
 
-				if (ix < south || !setBox)
-					south = ix;
-				if (ix > north || !setBox)
-					north = ix;
-				if (iy < west || !setBox)
-					west = iy;
-				if (iy > east || !setBox)
-					east = iy;
+				if (iy < south || !setBox)
+					south = iy;
+				if (iy > north || !setBox)
+					north = iy;
+				if (ix < west || !setBox)
+					west = ix;
+				if (ix > east || !setBox)
+					east = ix;
 
 				if (projType != PolyProjectArgs::Mercator)
 				{
