@@ -3,7 +3,7 @@
 class CopyPixels
 {
 private:
-	bool CopyTile(class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const int i, const int j, const int k, const bool merge);
+	bool CopyTile(const class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const int i, const int j, const int k, const bool merge);
 
 protected:
 	double gnorth, gsouth, geast, gwest;
@@ -17,10 +17,10 @@ public:
 	virtual ~CopyPixels();
 
 	virtual void UpdateBoundingBox(const char *mapref) = 0;
-	virtual int CheckIfInBox(double lat, double lon) = 0;
-	void Copy(class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const bool merge);
+	virtual bool CheckIfInBox(double lat, double lon) = 0;
+	void Copy(const class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const bool merge);
 	// Like 'Copy' but only checks the outer 'n' pixels of an image.
-	void FastCopy(class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const int tileSize);
+	void FastCopy(const class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const int tileSize);
 };
 
 class CopyPixelsWithOsMask : public CopyPixels
@@ -28,7 +28,7 @@ class CopyPixelsWithOsMask : public CopyPixels
 public:
 	CopyPixelsWithOsMask() {}
 	virtual void UpdateBoundingBox(const char *mapref);
-	virtual int CheckIfInBox(double lat, double lon);
+	virtual bool CheckIfInBox(double lat, double lon);
 };
 
 class CopyPixelsWithRawMask : public CopyPixelsWithOsMask
@@ -42,7 +42,7 @@ class CopyPixelsWithOsI : public CopyPixelsWithRawMask
 {
 public:
 	CopyPixelsWithOsI() {}
-	virtual int CheckIfInBox(double lat, double lon);
+	virtual bool CheckIfInBox(double lat, double lon);
 };
 
 class CopyPixelsWithCassini : public CopyPixels
@@ -50,7 +50,7 @@ class CopyPixelsWithCassini : public CopyPixels
 public:
 	CopyPixelsWithCassini() {}
 	virtual void UpdateBoundingBox(const char *mapref);
-	virtual int CheckIfInBox(double lat, double lon);
+	virtual bool CheckIfInBox(double lat, double lon);
 };
 
 class CopyPixelsWithBonne : public CopyPixels
@@ -58,21 +58,21 @@ class CopyPixelsWithBonne : public CopyPixels
 public:
 	CopyPixelsWithBonne() {}
 	virtual void UpdateBoundingBox(const char *mapref);
-	virtual int CheckIfInBox(double lat, double lon);
+	virtual bool CheckIfInBox(double lat, double lon);
 };
 
 class CopyPixelsWithIrishBonne : public CopyPixelsWithBonne
 {
 public:
 	CopyPixelsWithIrishBonne() {}
-	virtual int CheckIfInBox(double lat, double lon);
+	virtual bool CheckIfInBox(double lat, double lon);
 };
 
 class CopyPixelsWithFrenchBonne : public CopyPixelsWithBonne
 {
 public:
 	CopyPixelsWithFrenchBonne() {}
-	virtual int CheckIfInBox(double lat, double lon);
+	virtual bool CheckIfInBox(double lat, double lon);
 };
 
 class CopyPixelsWithMercator : public CopyPixels
@@ -80,7 +80,7 @@ class CopyPixelsWithMercator : public CopyPixels
 public:
 	CopyPixelsWithMercator() {}
 	virtual void UpdateBoundingBox(const char *mapref);
-	virtual int CheckIfInBox(double lat, double lon);
+	virtual bool CheckIfInBox(double lat, double lon);
 
 protected:
 	std::vector<double> gVertx;

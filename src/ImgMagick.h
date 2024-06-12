@@ -17,7 +17,7 @@ public:
 	virtual int Save(const char *filename);
 	virtual void Clear();
 	virtual void Close();
-	virtual int Ready();
+	virtual int Ready() const;
 
 	// Pixel data
 	virtual double GetPix(int x, int y, unsigned int channel) const;

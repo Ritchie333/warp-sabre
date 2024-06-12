@@ -214,99 +214,99 @@ void CopyPixelsWithParisMercator::UpdateBoundingBox(const char *mapref)
 	}
 }
 
-int CopyPixelsWithOsMask::CheckIfInBox(double lat, double lon)
+bool CopyPixelsWithOsMask::CheckIfInBox(double lat, double lon)
 {
 	double pnorth, peast, palt;
 	gConverter.ConvertWgs84ToGbos1936(lat, lon, 0.0, peast, pnorth, palt);
 	if (pnorth < gsouth)
-		return 0;
+		return false;
 	if (pnorth > gnorth)
-		return 0;
+		return false;
 	if (peast < gwest)
-		return 0;
+		return false;
 	if (peast > geast)
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
-int CopyPixelsWithOsI::CheckIfInBox(double lat, double lon)
+bool CopyPixelsWithOsI::CheckIfInBox(double lat, double lon)
 {
 	double pnorth, peast, palt;
 	gConverter.ConvertWgs84ToOsi(lat, lon, 0.0, peast, pnorth, palt);
 	if (pnorth < gsouth)
-		return 0;
+		return false;
 	if (pnorth > gnorth)
-		return 0;
+		return false;
 	if (peast < gwest)
-		return 0;
+		return false;
 	if (peast > geast)
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
-int CopyPixelsWithCassini::CheckIfInBox(double lat, double lon)
+bool CopyPixelsWithCassini::CheckIfInBox(double lat, double lon)
 {
 	double pnorth, peast;
 	gConverter.ConvertWgs84ToCas(lat, lon, 0.0, peast, pnorth);
 	if (pnorth < gsouth)
-		return 0;
+		return false;
 	if (pnorth > gnorth)
-		return 0;
+		return false;
 	if (peast < gwest)
-		return 0;
+		return false;
 	if (peast > geast)
-		return 0;
-	return 1;
+		return false;
+	return true;
 }
 
-int CopyPixelsWithBonne::CheckIfInBox(double lat, double lon)
+bool CopyPixelsWithBonne::CheckIfInBox(double lat, double lon)
 {
 	double pnorth, peast;
 	gConverter.ConvertWgs84ToBnS(lat, lon, 0.0, peast, pnorth);
 	if (pnorth < gsouth)
-		return 0;
+		return false;
 	if (pnorth > gnorth)
-		return 0;
+		return false;
 	if (peast < gwest)
-		return 0;
+		return false;
 	if (peast > geast)
-		return 0;
-	return 1;
+		return false;
+	return true;
 }
 
-int CopyPixelsWithIrishBonne::CheckIfInBox(double lat, double lon)
+bool CopyPixelsWithIrishBonne::CheckIfInBox(double lat, double lon)
 {
 	double pnorth, peast;
 	gConverter.ConvertWgs84ToBnI(lat, lon, 0.0, peast, pnorth);
 	if (pnorth < gsouth)
-		return 0;
+		return false;
 	if (pnorth > gnorth)
-		return 0;
+		return false;
 	if (peast < gwest)
-		return 0;
+		return false;
 	if (peast > geast)
-		return 0;
-	return 1;
+		return false;
+	return true;
 }
 
-int CopyPixelsWithFrenchBonne::CheckIfInBox(double lat, double lon)
+bool CopyPixelsWithFrenchBonne::CheckIfInBox(double lat, double lon)
 {
 	double pnorth, peast;
 	gConverter.ConvertWgs84ToBnF(lat, lon, 0.0, peast, pnorth);
 	if (pnorth < gsouth)
-		return 0;
+		return false;
 	if (pnorth > gnorth)
-		return 0;
+		return false;
 	if (peast < gwest)
-		return 0;
+		return false;
 	if (peast > geast)
-		return 0;
-	return 1;
+		return false;
+	return true;
 }
 
-int CopyPixelsWithMercator::CheckIfInBox(double lat, double lon)
+bool CopyPixelsWithMercator::CheckIfInBox(double lat, double lon)
 {
 	int c = 0, i = 0, j = 0;
 	for (i = 0, j = 3; i < 4; j = i++)
@@ -320,7 +320,7 @@ int CopyPixelsWithMercator::CheckIfInBox(double lat, double lon)
 	return c;
 }
 
-void CopyPixels::FastCopy(class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const int tileSize)
+void CopyPixels::FastCopy(const class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const int tileSize)
 {
 	int width = imageIn.GetWidth();
 	int height = imageIn.GetHeight();
@@ -344,12 +344,12 @@ void CopyPixels::FastCopy(class ImgMagick &imageIn, class ImgMagick &imageOut, c
 	}
 }
 
-bool CopyPixels::CopyTile(class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const int i, const int j, const int k, const bool merge)
+bool CopyPixels::CopyTile(const class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const int i, const int j, const int k, const bool merge)
 {
 	double lat, lon;
 	tile.UnProject(i, j, lat, lon);
 	double val = imageIn.GetPix(i, j, k);
-	int inMask = this->CheckIfInBox(lat, lon);
+	bool inMask = this->CheckIfInBox(lat, lon);
 	if (inMask)
 	{
 		if (!merge || (val > 0))
@@ -361,7 +361,7 @@ bool CopyPixels::CopyTile(class ImgMagick &imageIn, class ImgMagick &imageOut, c
 	return false;
 }
 
-void CopyPixels::Copy(class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const bool merge)
+void CopyPixels::Copy(const class ImgMagick &imageIn, class ImgMagick &imageOut, class Tile &tile, const bool merge)
 {
 	int width = imageIn.GetWidth();
 	int height = imageIn.GetHeight();
@@ -370,7 +370,7 @@ void CopyPixels::Copy(class ImgMagick &imageIn, class ImgMagick &imageOut, class
 	// Check corners (quicker to check then exhaustively check each pixel)
 	double lat, lon;
 	tile.UnProject(0, 0, lat, lon);
-	int cornerCheck = this->CheckIfInBox(lat, lon);
+	bool cornerCheck = this->CheckIfInBox(lat, lon);
 	tile.UnProject(width, 0, lat, lon);
 	cornerCheck = cornerCheck && this->CheckIfInBox(lat, lon);
 	tile.UnProject(width, height, lat, lon);

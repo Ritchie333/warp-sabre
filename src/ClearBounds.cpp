@@ -54,11 +54,14 @@ void ClearImage(const string &srcFilename, DelimitedFile &boundsFile, const int 
 	{
 		mask->UpdateBoundingBox(srcKml.bounds[i].c_str());
 	}
-	mask->FastCopy(srcKml.image, srcKml.image, srcKml.tile, edge);
+	const ImgMagick& imgIn = srcKml.image;
+	ImgMagick imgOut( imgIn.GetWidth(), imgIn.GetHeight() );
+	imgOut.Create();
+	mask->FastCopy(imgIn, imgOut, srcKml.tile, edge);
 
 	cout << "Saving file...." << endl;
 
-	srcKml.image.Save(srcKml.imgFilename.c_str());
+	imgOut.Save(srcKml.imgFilename.c_str());
 }
 
 int main(int argc, char *argv[])

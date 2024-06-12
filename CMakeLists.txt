@@ -55,63 +55,41 @@ add_library(newmat STATIC
     src/newmat-10/newmat9.cpp
 )
 
-add_executable(warp-sabre
+add_library(warp-sabre-lib STATIC
     src/ImageWarpByFunc.cpp
     src/ImgMagick.cpp
-    src/ReadDelimitedFile.cpp
     src/ProgramOptions.cpp
+    src/ReadDelimitedFile.cpp
     src/StringUtils.cpp
     src/Tile.cpp
-    src/TransformPoly.cpp
-    src/WarpOs.cpp
-    src/WriteKml.cpp
     src/ganzc/LatLong-OSGBconversion.cpp
     src/gbos1936/Gbos1936.cpp
 )
 
-add_executable(gentiles
+add_library(gentiles-lib STATIC
     src/CopyPixels.cpp
-    src/GenTiles.cpp
     src/GetBounds.cpp
     src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ProgramOptions.cpp
-    src/ReadDelimitedFile.cpp
     src/ReadKmlFile.cpp
     src/SourceKml.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/gbos1936/Gbos1936.cpp
+)
+
+add_executable(warp-sabre
+    src/TransformPoly.cpp
+    src/WarpOs.cpp
+    src/WriteKml.cpp
+)
+
+add_executable(gentiles
+    src/GenTiles.cpp
 )
 
 add_executable(cleartiles
     src/ClearTiles.cpp
-    src/CopyPixels.cpp
-    src/GetBounds.cpp
-    src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ProgramOptions.cpp
-    src/ReadDelimitedFile.cpp
-    src/ReadKmlFile.cpp
-    src/SourceKml.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/gbos1936/Gbos1936.cpp
 )
 
 add_executable(clearbounds
     src/ClearBounds.cpp
-    src/CopyPixels.cpp
-    src/GetBounds.cpp
-    src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ProgramOptions.cpp
-    src/ReadDelimitedFile.cpp
-    src/ReadKmlFile.cpp
-    src/SourceKml.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/gbos1936/Gbos1936.cpp
 )
 
 add_executable(testcas
@@ -121,7 +99,6 @@ add_executable(testcas
 
 target_include_directories(warp-sabre PUBLIC
     ${PROJECT_SOURCE_DIR}/libmorph
-    ${PROJECT_SOURCE_DIR}/newmat-10
 )
 
 target_link_libraries(warp-sabre
@@ -129,6 +106,7 @@ target_link_libraries(warp-sabre
     PRIVATE Boost::system
     PRIVATE morph
     PRIVATE newmat
+    PRIVATE warp-sabre-lib
 )
 
 target_include_directories(gentiles PUBLIC
@@ -141,6 +119,8 @@ target_link_libraries(gentiles
     PRIVATE Boost::thread
     PRIVATE Boost::system
     PRIVATE morph
+    PRIVATE warp-sabre-lib
+    PRIVATE gentiles-lib
 )
 
 target_include_directories(cleartiles PUBLIC
@@ -153,6 +133,8 @@ target_link_libraries(cleartiles
     PRIVATE Boost::thread
     PRIVATE Boost::system
     PRIVATE morph
+    PRIVATE warp-sabre-lib
+    PRIVATE gentiles-lib
 )
 
 target_include_directories(clearbounds PUBLIC
@@ -165,4 +147,6 @@ target_link_libraries(clearbounds
     PRIVATE Boost::thread
     PRIVATE Boost::system
     PRIVATE morph
+    PRIVATE warp-sabre-lib
+    PRIVATE gentiles-lib
 )

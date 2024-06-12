@@ -95,7 +95,7 @@ void ImgMagick::Clear()
 	raw = 0;
 }
 
-int ImgMagick::Ready()
+int ImgMagick::Ready() const
 {
 	return (raw != 0);
 }
