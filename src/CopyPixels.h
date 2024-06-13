@@ -75,6 +75,17 @@ public:
 	virtual bool CheckIfInBox(double lat, double lon);
 };
 
+class CopyPixelsWithUTM : public CopyPixels
+{
+public:
+	CopyPixelsWithUTM() {}
+	virtual void UpdateBoundingBox(const char *mapref);
+	virtual bool CheckIfInBox(double lat, double lon);
+private:
+	int zwest, zeast;
+
+};
+
 class CopyPixelsWithMercator : public CopyPixels
 {
 public:

@@ -103,6 +103,7 @@ double E_N_to_Long(double East, double North, double a, double b, double e0, dou
 double calc_M(double latdiff, double latsum, double nn, double eb, double F0);
 
 void TM2Geo( double East, double North, const Tmgriddata& TMgrid, double& latOut, double& lngOut );
+void Geo2TM( double lat, double lon, const Tmgriddata& TMgrid, double &eaOut, double &noOut );
 void Geo2Geo( double lat, double lon, const struct Datum& datum_a, const struct Datum& datum_b, double& latOut, double &lngOut );
 
 void ConvertGbos1936ToWgs84(double ea, double no, double he,
@@ -155,8 +156,9 @@ public:
 	void ConvertWgs84ToCas(double lat, double lon, double he, double &eaOut, double &noOut);
 	void ConvertWgs84ToBnS(double lat, double lon, double he, double &eaOut, double &noOut);
 	void ConvertWgs84ToBnI(double lat, double lon, double he, double &eaOut, double &noOut);
-	void ConvertWgs84ToBnF(double lat, double lon, double he, double &eaOut, double &noOut );
-	void ConvertUTM50ToWgs84( const int zone, double ea, double no, double &latOut, double &lonOut );
+	void ConvertWgs84ToBnF(double lat, double lon, double he, double &eaOut, double &noOut);
+	void ConvertUTM50ToWgs84(const int zone, double ea, double no, double &latOut, double &lonOut);
+	void ConvertWgs84ToUTM50(double lat, double lon, double &eaOut, double &noOut, int &zOut);
 	void ConvertParisToWgs84(double glat, double glon, double &latOut, double &lonOut );
 	void ConvertWgs84ToParis(double lat, double lon, double &glatOut, double &glonOut );
 	void GetTransformName(char *buffer, int maxLen)

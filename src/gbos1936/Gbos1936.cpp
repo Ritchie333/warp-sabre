@@ -1245,8 +1245,50 @@ void TM2Geo( double east, double north, const Tmgriddata& TMgrid, double& latOut
        if (fabs(Qi-newv) < 1e-11) { complete = true; }
        Qi = newv; 
     } while (complete == false);
-    latOut = atan(sinh(Qi));
-    lngOut = TMgrid.Lon0+l;
+    latOut = ( atan(sinh(Qi)) ) * ( 180 / M_PI );
+    lngOut = ( TMgrid.Lon0+l ) * ( 180 / M_PI );
+}
+
+void Geo2TM( double dlat, double dlon, const Tmgriddata& TMgrid, double &eaOut, double &noOut )
+{
+    double lat = dlat * ( M_PI / 180 );
+    double lon = dlon * ( M_PI / 180 );
+    double a = TMgrid.ellip.a;
+    double b = TMgrid.ellip.b;
+    double n = ((a-b)/(a+b));
+    double e2 = TMgrid.ellip.e2;
+    double A1 = a/(1+n)*(n*n*(n*n*((n*n)+4)+64)+256)/256;
+    double h1i = n*(n*(n*(n*(n*(31564*n-66675)+34440)+47250)-100800)+75600)/151200;
+    double h2i = n*n*(n*(n*((863232-1983433*n)*n+748608)-1161216)+524160)/1935360;
+    double h3i = n*n*n*(n*(n*(670412*n+406647)-533952)+184464)/725760;
+    double h4i = n*n*n*n*(n*(6601661*n-7732800)+2230245)/7257600;
+    double h5i = (3438171-13675556*n)*n*n*n*n*n/7983360;
+    double h6i = 212378941*n*n*n*n*n*n/319334400;
+    double Qi = arsinh(tan(lat));
+    double Qii = artanh(sqrt(e2)*sin(lat)); 
+    double Q = Qi-(sqrt(e2)*Qii);
+    double l = lon-TMgrid.Lon0;
+    double BB = atan(sinh(Q));
+    double ni = artanh(cos(BB)*sin(l));
+    double Ei = asin(sin(BB)/sech(ni));
+    double E1 = h1i*sin(2*Ei)*cosh(2*ni);
+    double E2 = h2i*sin(4*Ei)*cosh(4*ni);
+    double E3 = h3i*sin(6*Ei)*cosh(6*ni);
+    double E4 = h4i*sin(8*Ei)*cosh(8*ni);
+    double E5 = h5i*sin(10*Ei)*cosh(10*ni);
+    double E6 = h6i*sin(12*Ei)*cosh(12*ni);
+    double n1 = h1i*cos(2*Ei)*sinh(2*ni);
+    double n2 = h2i*cos(4*Ei)*sinh(4*ni);
+    double n3 = h3i*cos(6*Ei)*sinh(6*ni);
+    double n4 = h4i*cos(8*Ei)*sinh(8*ni);
+    double n5 = h5i*cos(10*Ei)*sinh(10*ni);
+    double n6 = h6i*cos(12*Ei)*sinh(12*ni);
+    double E = Ei+E1+E2+E3+E4+E5+E6;
+    double nn = ni+n1+n2+n3+n4+n5+n6;
+    double M = calc_M(TMgrid.Lat0,TMgrid.Lat0,n,b,TMgrid.F0);
+    noOut = (A1*E*TMgrid.F0+TMgrid.FN-M);
+    eaOut = (A1*nn*TMgrid.F0)+TMgrid.FE;
+
 }
 
 void Geo2Geo( double dlat, double dlon, const struct Datum& datum_a, const struct Datum& datum_b, double& latOut, double &lngOut )
@@ -1415,6 +1457,17 @@ void HelmertConverter::ConvertUTM50ToWgs84( const int zone, double ea, double no
     double loned50 = 0;
     ::TM2Geo( ea, no, tmgrid, lated50, loned50 );
     ::Geo2Geo( lated50, loned50, ED50, WGS84, latOut, lonOut );
+}
+
+void HelmertConverter::ConvertWgs84ToUTM50( double lat, double lon, double &eaOut, double &noOut, int &zOut )
+{
+    double lated50 = 0;
+    double loned50 = 0;
+    ::Geo2Geo( lat, lon, WGS84, ED50, lated50, loned50 );
+    const int fZone = ( floor( loned50 / 6 ) * 6 );
+    zOut = ( fZone + 186 ) / 6;
+    Tmgriddata tmgrid = Make_UTM( zOut );
+    ::Geo2TM( lated50, loned50, tmgrid, eaOut, noOut );
 }
 
 void HelmertConverter::ConvertParisToWgs84(double glat, double glon, double &latOut, double &lonOut )

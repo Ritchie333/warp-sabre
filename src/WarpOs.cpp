@@ -549,15 +549,15 @@ int main(int argc, char *argv[])
 		if (line.NumVals() == 6) // Read in UTM data
 		{
 			int zone = 0;
-			double dEasting = 0, dNorthing = 0;
+			int dEasting = 0, dNorthing = 0;
 			double imgX = line[4].GetVald();
 			double imgY = line[5].GetVald();
 			double lat = -1.0, lon = -1.0;
 			if (strcmp(line[0].GetVals(), "utm") == 0)
 			{
-				zone = line[2].GetVali();
-				dEasting = line[3].GetVald();
-				dNorthing = line[4].GetVald();
+				zone = line[1].GetVali();
+				dEasting = line[2].GetVald();
+				dNorthing = line[3].GetVald();
 
 				gConverter.ConvertUTM50ToWgs84( zone, dEasting, dNorthing, lat, lon);
 			}

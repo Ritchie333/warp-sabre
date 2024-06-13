@@ -34,6 +34,7 @@ CopyPixels *CopyPixels::Create(const char *type)
 	MASK_ENTRY("FB", CopyPixelsWithFrenchBonne )
 	MASK_ENTRY("PM", CopyPixelsWithParisMercator )
 	MASK_ENTRY("M", CopyPixelsWithMercator )
+	MASK_ENTRY("UTM", CopyPixelsWithUTM )
 	END_MASK_MAP()
 
 	if( !mask ) {
@@ -78,6 +79,27 @@ void CopyPixelsWithOsMask::UpdateBoundingBox(const char *mapref)
 		boxset = 1;
 		// double lat=-1.0, lon=-1.0, alt = -1.0;
 		// ConvertGbos1936ToWgs84(dEasting, dNorthing,0.0, lat, lon, alt);
+	}
+}
+
+void CopyPixelsWithUTM::UpdateBoundingBox(const char *mapref)
+{
+	int dZone = 0, dEasting = 0, dNorthing = 0;
+	if( 3 == sscanf(mapref, "%d:%d:%d", &dZone, &dEasting, &dNorthing ))
+	{
+		if (!boxset || gsouth > dNorthing)
+			gsouth = dNorthing;
+		if (!boxset || gnorth < dNorthing)
+			gnorth = dNorthing;
+		if (!boxset || geast < dEasting)
+			geast = dEasting;
+		if (!boxset || gwest > dEasting)
+			gwest = dEasting;
+		if (!boxset || zeast < dZone )
+			zeast = dZone;
+		if (!boxset || zwest > dZone )
+			zwest = dZone;
+		boxset = 1;
 	}
 }
 
@@ -227,6 +249,26 @@ bool CopyPixelsWithOsMask::CheckIfInBox(double lat, double lon)
 	if (peast > geast)
 		return false;
 
+	return true;
+}
+
+bool CopyPixelsWithUTM::CheckIfInBox(double lat, double lon)
+{
+	double pnorth, peast;
+	int pzone;
+	gConverter.ConvertWgs84ToUTM50( lat, lon, peast, pnorth, pzone );
+	if(pzone < zwest)
+		return false;
+	if(pzone > zeast)
+		return false;
+	if (pnorth < gsouth)
+		return false;
+	if (pnorth > gnorth)
+		return false;
+	if (peast < gwest)
+		return false;
+	if (peast > geast)
+		return false;
 	return true;
 }
 
