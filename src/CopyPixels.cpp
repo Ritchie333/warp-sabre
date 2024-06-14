@@ -85,7 +85,7 @@ void CopyPixelsWithOsMask::UpdateBoundingBox(const char *mapref)
 
 long CopyPixelsWithUTM::UTMEasting( const int zone, const int easting )
 {
-	return ( zone * 100000 ) + easting;
+	return ( zone * 1000000 ) + easting;
 }
 
 void CopyPixelsWithUTM::UpdateBoundingBox(const char *mapref)
@@ -270,17 +270,18 @@ bool CopyPixelsWithUTM::CheckIfInBox(double lat, double lon)
 	double pnorth, peast;
 	int pzone;
 	gConverter.ConvertWgs84ToUTM50( lat, lon, peast, pnorth, pzone );
-	if(pzone < zwest)
-		return false;
-	if(pzone > zeast)
-		return false;
+
+	long fullEasting = UTMEasting( pzone, peast );
+	long fullWest = UTMEasting( zwest, gwest );
+	long fullEast = UTMEasting( zeast, geast );
+
 	if (pnorth < gsouth)
 		return false;
 	if (pnorth > gnorth)
 		return false;
-	if (peast < gwest && pzone == zwest )
+	if (fullEasting < fullWest )
 		return false;
-	if (peast > geast && pzone == zeast)
+	if (fullEasting > fullEast )
 		return false;
 	return true;
 }
