@@ -26,7 +26,7 @@ const double METRES_IN_MILE = 1609.347955248;
 struct Tmgriddata Make_UTM( const int zone )
 {
     Tmgriddata utm;
-    utm.ellip = GRS80;
+    utm.ellip = Int24;
     utm.F0 = 0.9996,
     utm.Lat0 = 0.0;
     utm.Lon0 = ( ( zone * 6 ) - 183 ) * ( M_PI / 180 );
