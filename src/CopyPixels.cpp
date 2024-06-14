@@ -265,9 +265,9 @@ bool CopyPixelsWithUTM::CheckIfInBox(double lat, double lon)
 		return false;
 	if (pnorth > gnorth)
 		return false;
-	if (peast < gwest)
+	if (peast < gwest && pzone == zwest )
 		return false;
-	if (peast > geast)
+	if (peast > geast && pzone == zeast)
 		return false;
 	return true;
 }
