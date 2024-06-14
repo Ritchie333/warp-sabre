@@ -82,6 +82,10 @@ public:
 	virtual void UpdateBoundingBox(const char *mapref);
 	virtual bool CheckIfInBox(double lat, double lon);
 private:
+	// As a quick and simple hack, UTM zones can only be 668km,
+	// so multiply the zone by 1000km and add the easting to get
+	// an easy comparison
+	long UTMEasting( const int zone, const int easting );
 	int zwest, zeast;
 
 };

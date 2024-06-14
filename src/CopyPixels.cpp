@@ -82,23 +82,36 @@ void CopyPixelsWithOsMask::UpdateBoundingBox(const char *mapref)
 	}
 }
 
+
+long CopyPixelsWithUTM::UTMEasting( const int zone, const int easting )
+{
+	return ( zone * 100000 ) + easting;
+}
+
 void CopyPixelsWithUTM::UpdateBoundingBox(const char *mapref)
 {
 	int dZone = 0, dEasting = 0, dNorthing = 0;
 	if( 3 == sscanf(mapref, "%d:%d:%d", &dZone, &dEasting, &dNorthing ))
 	{
-		if (!boxset || gsouth > dNorthing)
+		long fullEasting = UTMEasting( dZone, dEasting ); 
+		long fullWest = UTMEasting( zwest, gwest ); 
+		long fullEast = UTMEasting( zeast, geast ); 
+
+		if (!boxset || gsouth > dNorthing) {
 			gsouth = dNorthing;
-		if (!boxset || gnorth < dNorthing)
+		}
+		if (!boxset || gnorth < dNorthing) {
 			gnorth = dNorthing;
-		if (!boxset || geast < dEasting)
+		}
+		if (!boxset || fullEast < fullEasting) {
 			geast = dEasting;
-		if (!boxset || gwest > dEasting)
-			gwest = dEasting;
-		if (!boxset || zeast < dZone )
 			zeast = dZone;
-		if (!boxset || zwest > dZone )
+		}
+		if (!boxset || fullWest > fullEasting) {
+			gwest = dEasting;
 			zwest = dZone;
+		}
+
 		boxset = 1;
 	}
 }
