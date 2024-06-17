@@ -43,11 +43,23 @@ void ImgMagick::Close()
 	raw = 0;
 }
 
-int ImgMagick::Create()
+int ImgMagick::Create( const ImgFrameBase* src )
 {
 	Close();
-	raw = new unsigned char[ width * height * channels ];
-	memset( raw, 0, width * height * channels * sizeof( unsigned char ) );
+	const size_t size = width * height * channels;
+
+	raw = new unsigned char[ size ];
+
+	if( src ) {
+		// Copy from source image of the same dimensions
+		const size_t otherSize = src->GetWidth() * src->GetHeight() * src->GetNumChannels();
+		if( size != otherSize ) {
+			throw( std::invalid_argument("src") );
+		}
+		memcpy( raw, src->GetInternalDataConst(), size * sizeof( unsigned char ) );
+	} else {
+		memset( raw, 0, size * sizeof( unsigned char ) );
+	}
 	return 1;
 }
 
@@ -59,8 +71,12 @@ int ImgMagick::Open(const char *filename)
 	MagickWand *wand = NewMagickWand();
 	// Open File
 	MagickBooleanType ret = MagickReadImage(wand, filename);
-	if (!ret)
+	if (!ret) {
+		ExceptionType severity;
+		char* error = MagickGetException( wand, &severity );
+		cout << severity << " " << error << endl;
 		return -1;
+	}
 
 	width = MagickGetImageWidth(wand);
 	height = MagickGetImageHeight(wand);

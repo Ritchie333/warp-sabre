@@ -56,7 +56,7 @@ void ClearImage(const string &srcFilename, DelimitedFile &boundsFile, const int 
 	}
 	const ImgMagick& imgIn = srcKml.image;
 	ImgMagick imgOut( imgIn.GetWidth(), imgIn.GetHeight() );
-	imgOut.Create();
+	imgOut.Create( &imgIn );
 	mask->FastCopy(imgIn, imgOut, srcKml.tile, edge);
 
 	cout << "Saving file...." << endl;

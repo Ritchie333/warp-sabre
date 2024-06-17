@@ -13,7 +13,7 @@ public:
 	virtual ~ImgMagick();
 
 	virtual int Open(const char *filename);
-	virtual int Create();
+	virtual int Create(const ImgFrameBase* src = 0);
 	virtual int Save(const char *filename);
 	virtual void Clear();
 	virtual void Close();
