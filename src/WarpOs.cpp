@@ -111,6 +111,7 @@ const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType
 		break;
 	case PolyProjectArgs::BonneF:
 		gFallbackConverter.ConvertBnFToWgs84(ref.x, ref.y, 0.0, lat, lon, alt );
+		break;
 	}
 	if (projType != PolyProjectArgs::OSGB && !args->mercatorOut)
 	{
