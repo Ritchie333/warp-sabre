@@ -21,21 +21,55 @@ struct Datum ED50 = { Int24, 86, 96, 120, 0, 0, 0, 0 };
 struct Datum WGS84 = { GRS80, 0, 0, 0, 0, 0, 0, 0 };
 struct Datum Michelin = { Plessis, 1118, 23, 66, 0, 0, 0, 0 };
 
-const double METRES_IN_MILE = 1609.347955248;
-
-struct Tmgriddata Make_UTM( const int zone )
+struct GridData MakeCasDelamere()
 {
-    Tmgriddata utm;
+    GridData gd;
+    gd.ellip = Airy;
+    gd.F0 = 1;
+    gd.Lat0 = 0.928889796984924;
+    gd.Lon0 = -0.046850270658502294;
+    gd.Unit = METRES_IN_MILE;
+    gd.FE = 0;
+    gd.FN = 0;
+    return gd;
+} 
+
+struct GridData MakeCasWO()
+{
+    GridData gd;
+    gd.ellip = Airy;
+    gd.F0 = 1;
+    gd.Lat0 = 0.8834456605345643;
+    gd.Lon0 = -0.02089612900242731;
+    gd.Unit = 1;
+    gd.FE = 500000;
+    gd.FN = 100000;
+    return gd;
+} 
+
+struct GridData MakeCasWOI()
+{
+    GridData gd;
+    gd.ellip = Airy;
+    gd.F0 = 1;
+    gd.Lat0 = 53.5 * ( M_PI / 180 );
+    gd.Lon0 = -8 * ( M_PI / 180 );
+    gd.Unit = 1;
+    gd.FE = 199990;
+    gd.FN = 249975;
+    return gd;
+}
+
+struct GridData Make_UTM( const int zone )
+{
+    GridData utm;
     utm.ellip = Int24;
     utm.F0 = 0.9996,
     utm.Lat0 = 0.0;
     utm.Lon0 = ( ( zone * 6 ) - 183 ) * ( M_PI / 180 );
+    utm.Unit = 1;
     utm.FE = 500000;
     utm.FN = 0;
-    utm.e_min = 125000;
-    utm.e_max = 875000;
-    utm.n_min = 0;
-    utm.n_max = 9332300;
     return utm;
 }
 
@@ -709,29 +743,23 @@ EndOfComputeBearing:
 End Function*/
 
 void ConvertCasToWgs84(double ea, double no, double he,
-                       double &latOut, double &lonOut, double &heOut)
+                       double &latOut, double &lonOut, double &heOut,
+                       const GridData& CSGrid, ConvertFunc convert )
 {
-    const long double a = Airy.a / METRES_IN_MILE;
-    const long double b = Airy.b / METRES_IN_MILE;
+    const long double a = CSGrid.ellip.a / CSGrid.Unit;
+    const long double b = CSGrid.ellip.b / CSGrid.Unit;
     const long double e2 = ((a * a) - (b * b)) / (a * a);
-    const int FE = 0;
-    const int FN = 0;
-    const int F0 = 1;
-
-    // Lat and lon of origin in Delamere Forest, Cheshire
-    const long double Lat0 = 53.221465 * (M_PI / 180.0);
-    const long double Lon0 = -2.68432278 * (M_PI / 180.0);
 
     // const long double QQ = ( 1 - ( e2 / 4 ) - ( ( 3 / 64 ) * pow( e2, 2 ) ) - ( ( 5 / 256 ) * pow( e2, 3 ) ) );
     const long double N = ((a - b) / (a + b));
 
-    long double lat_ = ((no - FN) / (a * F0)) + Lat0;
+    long double lat_ = ((no - CSGrid.FN) / (a * CSGrid.F0)) + CSGrid.Lat0;
     for (bool iter_complete = false; !iter_complete;)
     {
-        long double M = calc_M(lat_ - Lat0, lat_ + Lat0, N, b, 1);
-        if (fabs(no - FN - M) >= 0.00000001)
+        long double M = calc_M(lat_ - CSGrid.Lat0, lat_ + CSGrid.Lat0, N, b, 1);
+        if (fabs(no - CSGrid.FN - M) >= 0.00000001)
         {
-            lat_ = (((no - FN - M) / (a * F0)) + lat_);
+            lat_ = (((no - CSGrid.FN - M) / (a * CSGrid.F0)) + lat_);
         }
         else
         {
@@ -751,7 +779,7 @@ void ConvertCasToWgs84(double ea, double no, double he,
     long double T1 = pow(tan(w1), 2);
     long double v1 = a / sqrt(1 - (e2 * pow(sin(w1), 2)));
     long double r1 = (a * (1 - e2)) / pow((1 - (e2 * pow(sin(w1), 2))), 1.5);
-    long double D = (ea - FE) / v1;
+    long double D = (ea - CSGrid.FE) / v1;
     long double KK = ((1 + (3 * T1)) * (pow(D, 4) / 24));
     long double LL = (v1 * tan(w1)) / r1;
     long double MM = w1 - (LL * ((pow(D, 2) / 2) - KK));
@@ -760,9 +788,9 @@ void ConvertCasToWgs84(double ea, double no, double he,
     long double TT = ((D - RR + SS) / cos(w1));
 
     double gboslat = MM * (180 / M_PI);
-    double gboslng = (Lon0 + TT) * (180 / M_PI);
+    double gboslng = (CSGrid.Lon0 + TT) * (180 / M_PI);
 
-    ConvertGbos1936LatLngToWgs84(gboslat, gboslng, he, latOut, lonOut, heOut);
+    convert(gboslat, gboslng, he, latOut, lonOut, heOut);
 }
 
 void ConvertBnToMercator(const struct Ellip& ellip, const double sf, double orglat, double orglon, double ea, double no, double he,
@@ -889,12 +917,10 @@ void ConvertOsiToWgs84(double ea, double no, double he,
     double r_latOut = 0;
     double r_lonOut = 0;
 
-    ConvertOsi65ToWgs84(lati, loni, r_latOut, r_lonOut);
+    ConvertOsi65ToWgs84(lati, loni, 0, r_latOut, r_lonOut, heOut);
 
     latOut = r_latOut * (180 / M_PI);
     lonOut = r_lonOut * (180 / M_PI);
-
-    heOut = 0;
 }
 
 void ConvertGbos1936LatLngToWgs84(double gbos36lat, double gbos36lon, double he,
@@ -931,7 +957,8 @@ void ConvertWgs84ToOsi(double lat, double lon, double he,
 {
     double r_lat = 0;
     double r_lon = 0;
-    ConvertWgs84ToOsi65(lat * (M_PI / 180), lon * (M_PI / 180), r_lat, r_lon);
+    double r_he = 0;
+    ConvertWgs84ToOsi65(lat * (M_PI / 180), lon * (M_PI / 180), 0, r_lat, r_lon, r_he);
     double a = 6377340.189446778;
     double b = 6356034.448383377;
     double n = ((a - b) / (a + b));
@@ -973,39 +1000,36 @@ void ConvertWgs84ToOsi(double lat, double lon, double he,
 }
 
 void ConvertWgs84ToCas(double wlat, double wlon, double he,
-                       double &eaOut, double &noOut)
+                       double &eaOut, double &noOut,
+                       const GridData& CSGrid,
+                       ConvertFunc convert )
 {
-    const double a = Airy.a / METRES_IN_MILE;
-    const double b = Airy.b / METRES_IN_MILE;
-    const int FE = 0;
-    const int FN = 0;
-
-    // Lat and lon of origin in Delamere Forest, Cheshire
-    const long double Lat0 = 53.221465 * (M_PI / 180.0);
-    const long double Lon0 = -2.68432278 * (M_PI / 180.0);
+    const double a = CSGrid.ellip.a / CSGrid.Unit;
+    const double b = CSGrid.ellip.a / CSGrid.Unit;
 
     const long double e2 = ((a * a) - (b * b)) / (a * a);
 
     double gbos36lat2 = 0.0;
     double gbos36lon2 = 0.0;
-    ConvertWgs84ToGbos1936LatLng(wlat, wlon, he, gbos36lat2, gbos36lon2);
+    double heOut = 0.0;
+    convert(wlat, wlon, he, gbos36lat2, gbos36lon2, heOut);
 
     long double lat = gbos36lat2 * (M_PI / 180.0);
     long double lon = gbos36lon2 * (M_PI / 180.0);
 
     long double v = a / sqrt((1 - (e2 * pow(sin(lat), 2))));
     long double T = pow(tan(lat), 2);
-    long double AA = ((lon - Lon0) * cos(lat));
+    long double AA = ((lon - CSGrid.Lon0) * cos(lat));
     long double C = ((e2 * pow(cos(lat), 2) / (1 - e2)));
     long double GG = (AA - (T * pow(AA, 3) / 6) - ((8 - T + (8 * C)) * T * pow(AA, 5) / 120));
     long double N = ((a - b) / (a + b));
 
-    long double M0 = calc_M(Lat0, Lat0, N, b, 1);
+    long double M0 = calc_M(CSGrid.Lat0, CSGrid.Lat0, N, b, 1);
     long double M = calc_M(lat, lat, N, b, 1);
     long double FF = ((pow(AA, 2) / 2) + ((5 - T + (6 * C)) * pow(AA, 4) / 24));
 
-    eaOut = FE + (v * GG);
-    noOut = FN + M - M0 + (v * tan(lat) * FF);
+    eaOut = CSGrid.FE + (v * GG);
+    noOut = CSGrid.FN + M - M0 + (v * tan(lat) * FF);
 }
 
 void ConvertMercatorToBn(const struct Ellip& ellip, const double sf, const double orglat, const double orglon,
@@ -1131,17 +1155,26 @@ int TestGbos1936()
     return 1;
 }
 
-void ConvertOsi65ToWgs84(double osilat, double osilon, double &latOut,
-                         double &lonOut)
+void ConvertOsi65ToWgs84(double osilat, double osilon, double he, double &latOut,
+                         double &lonOut, double& heOut)
 {
     double latShift = 0;
     double lonShift = 0;
     GetOsiShift(osilat, osilon, latShift, lonShift);
     latOut = osilat + latShift;
     lonOut = osilon + lonShift;
+    heOut = 0.0;
 }
 
-void ConvertWgs84ToOsi65(double lat, double lon, double &latOut, double &lonOut)
+void ConvertOsi65ToWgs84D(double osilat, double osilon, double he, double &latOut,
+                         double &lonOut, double& heOut )
+{
+    ConvertOsi65ToWgs84( osilat * ( M_PI / 180 ), osilon * ( M_PI / 180 ), he, latOut, lonOut, heOut );
+    latOut *= ( 180 / M_PI );
+    lonOut *= ( 180 / M_PI );
+}
+
+void ConvertWgs84ToOsi65(double lat, double lon, double he, double &latOut, double &lonOut, double &heOut)
 {
     double old_lat = 0;
     double old_lon = 0;
@@ -1166,6 +1199,14 @@ void ConvertWgs84ToOsi65(double lat, double lon, double &latOut, double &lonOut)
             lonOut = lat - shift_lon;
         }
     }
+    heOut = 0.0;
+}
+
+void ConvertWgs84ToOsi65D(double lat, double lon, double he, double &latOut, double &lonOut, double &heOut)
+{
+    ConvertWgs84ToOsi65( lat * ( M_PI / 180 ), lon * ( M_PI / 180 ), he, latOut, lonOut, heOut );
+    latOut *= ( 180 / M_PI );
+    lonOut *= ( 180 / M_PI );
 }
 
 void GetOsiShift(double lat, double lon, double &latOut, double &lonOut)
@@ -1205,7 +1246,7 @@ void GetOsiShift(double lat, double lon, double &latOut, double &lonOut)
     lonOut = (dlon / 3600) * (M_PI / 180);
 }
 
-void TM2Geo( double east, double north, const Tmgriddata& TMgrid, double& latOut, double& lngOut )
+void TM2Geo( double east, double north, const GridData& TMgrid, double& latOut, double& lngOut )
 {
     double a = TMgrid.ellip.a;
     double b = TMgrid.ellip.b;
@@ -1249,7 +1290,7 @@ void TM2Geo( double east, double north, const Tmgriddata& TMgrid, double& latOut
     lngOut = ( TMgrid.Lon0+l ) * ( 180 / M_PI );
 }
 
-void Geo2TM( double dlat, double dlon, const Tmgriddata& TMgrid, double &eaOut, double &noOut )
+void Geo2TM( double dlat, double dlon, const GridData& TMgrid, double &eaOut, double &noOut )
 {
     double lat = dlat * ( M_PI / 180 );
     double lon = dlon * ( M_PI / 180 );
@@ -1378,10 +1419,22 @@ void HelmertConverter::ConvertWgs84ToOsi(double lat, double lon, double he,
                         eaOut, noOut, heOut);
 }
 
-void HelmertConverter::ConvertCasToWgs84(double lat, double lon, double he,
-                                         double &eaOut, double &noOut, double &heOut)
+void HelmertConverter::ConvertCasToWgs84(double ea, double no, double he,
+                                         double &latOut, double &lonOut, double &heOut)
 {
-    ::ConvertCasToWgs84(lat, lon, he, eaOut, noOut, heOut);
+    ::ConvertCasToWgs84(ea, no, he, latOut, lonOut, heOut, MakeCasDelamere(), ::ConvertGbos1936ToWgs84);
+}
+
+void HelmertConverter::ConvertWOToWgs84(double ea, double no, double he,
+							double &latOut, double &lonOut, double &heOut)
+{
+    ::ConvertCasToWgs84(ea, no, he, latOut, lonOut, heOut, MakeCasWO(), ::ConvertGbos1936ToWgs84);
+}
+
+void HelmertConverter::ConvertWOIToWgs84(double ea, double no, double he,
+							double &latOut, double &lonOut, double &heOut)
+{
+    ::ConvertCasToWgs84(ea, no, he, latOut, lonOut, heOut, MakeCasWOI(), ::ConvertOsi65ToWgs84D);
 }
 
 void HelmertConverter::ConvertBnSToWgs84(double lat, double lon, double he,
@@ -1417,7 +1470,19 @@ void HelmertConverter::ConvertBnFToWgs84(double ea, double no, double he,
 void HelmertConverter::ConvertWgs84ToCas(double lat, double lon, double he,
                                          double &eaOut, double &noOut)
 {
-    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut);
+    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut, MakeCasDelamere(), ::ConvertWgs84ToGbos1936);
+}
+
+void HelmertConverter::ConvertWgs84ToWO(double lat, double lon, double he,
+                                        double &eaOut, double &noOut )
+{
+    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut, MakeCasWO(), ::ConvertWgs84ToGbos1936);
+}
+
+void HelmertConverter::ConvertWgs84ToWOI(double lat, double lon, double he,
+                                        double &eaOut, double &noOut )
+{
+    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut, MakeCasWOI(), ::ConvertWgs84ToOsi65D);
 }
 
 void HelmertConverter::ConvertWgs84ToBnS(double lat, double lon, double he,
@@ -1452,7 +1517,7 @@ void HelmertConverter::ConvertWgs84ToBnF(double lat, double lon, double he, doub
 void HelmertConverter::ConvertUTM50ToWgs84( const int zone, double ea, double no,
     double &latOut, double &lonOut )
 {
-    Tmgriddata tmgrid = Make_UTM( zone );
+    GridData tmgrid = Make_UTM( zone );
     double lated50 = 0;
     double loned50 = 0;
     ::TM2Geo( ea, no, tmgrid, lated50, loned50 );
@@ -1466,7 +1531,7 @@ void HelmertConverter::ConvertWgs84ToUTM50( double lat, double lon, double &eaOu
     ::Geo2Geo( lat, lon, WGS84, ED50, lated50, loned50 );
     const int fZone = ( floor( loned50 / 6 ) * 6 );
     zOut = ( fZone + 186 ) / 6;
-    Tmgriddata tmgrid = Make_UTM( zOut );
+    GridData tmgrid = Make_UTM( zOut );
     ::Geo2TM( lated50, loned50, tmgrid, eaOut, noOut );
 }
 

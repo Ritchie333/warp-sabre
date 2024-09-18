@@ -24,6 +24,7 @@ CopyPixels *CopyPixels::Create(const char *type)
 	MASK_ENTRY("G", CopyPixelsWithOsMask )
 	MASK_ENTRY("O", CopyPixelsWithRawMask )
 	MASK_ENTRY("OS", CopyPixelsWithRawMask )
+	MASK_ENTRY("OSY", CopyPixelsWithOSYMask )
 	MASK_ENTRY("C", CopyPixelsWithCassini )
 	MASK_ENTRY("CAS", CopyPixelsWithCassini )
 	MASK_ENTRY("B", CopyPixelsWithBonne )
@@ -35,6 +36,8 @@ CopyPixels *CopyPixels::Create(const char *type)
 	MASK_ENTRY("PM", CopyPixelsWithParisMercator )
 	MASK_ENTRY("M", CopyPixelsWithMercator )
 	MASK_ENTRY("UTM", CopyPixelsWithUTM )
+	MASK_ENTRY("WO", CopyPixelsWithWO )
+	MASK_ENTRY("WOI", CopyPixelsWithWOI )
 	END_MASK_MAP()
 
 	if( !mask ) {
@@ -82,6 +85,24 @@ void CopyPixelsWithOsMask::UpdateBoundingBox(const char *mapref)
 	}
 }
 
+void CopyPixelsWithOSYMask::UpdateBoundingBox(const char *mapref)
+{
+	int dEasting = 0, dNorthing = 0;
+	if (2 == sscanf(mapref, "%d:%d", &dEasting, &dNorthing))
+	{
+		dEasting *= METRES_IN_YARD;
+		dNorthing *= METRES_IN_YARD;
+		if (!boxset || gsouth > dNorthing)
+			gsouth = dNorthing;
+		if (!boxset || gnorth < dNorthing)
+			gnorth = dNorthing;
+		if (!boxset || geast < dEasting)
+			geast = dEasting;
+		if (!boxset || gwest > dEasting)
+			gwest = dEasting;
+		boxset = 1;
+	}
+}
 
 long CopyPixelsWithUTM::UTMEasting( const int zone, const int easting )
 {
@@ -114,6 +135,38 @@ void CopyPixelsWithUTM::UpdateBoundingBox(const char *mapref)
 
 		boxset = 1;
 	}
+}
+
+bool
+CopyPixelsWithWO::CheckIfInBox(double lat, double lon)
+{
+	double pnorth, peast;
+	gConverter.ConvertWgs84ToWO(lat, lon, 0.0, peast, pnorth);
+	if (pnorth < gsouth)
+		return false;
+	if (pnorth > gnorth)
+		return false;
+	if (peast < gwest)
+		return false;
+	if (peast > geast)
+		return false;
+	return true;
+}
+
+bool
+CopyPixelsWithWOI::CheckIfInBox(double lat, double lon)
+{
+	double pnorth, peast;
+	gConverter.ConvertWgs84ToWOI(lat, lon, 0.0, peast, pnorth);
+	if (pnorth < gsouth)
+		return false;
+	if (pnorth > gnorth)
+		return false;
+	if (peast < gwest)
+		return false;
+	if (peast > geast)
+		return false;
+	return true;
 }
 
 void CopyPixelsWithRawMask::UpdateBoundingBox(const char *mapref)

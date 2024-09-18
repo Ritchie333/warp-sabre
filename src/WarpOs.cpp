@@ -46,7 +46,10 @@ public:
 		BonneS,
 		BonneI,
 		BonneF,
-		OSI
+		OSI,
+		WO,
+		WOI,
+		OSGBY
 	} ProjType;
 
 	vector<double> imgToRefPoly;
@@ -91,6 +94,9 @@ const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType
 			alt = 0.0;
 		}
 		break;
+	case PolyProjectArgs::OSGBY:
+		gFallbackConverter.ConvertGbos1936ToWgs84(ref.x * METRES_IN_YARD, ref.y * METRES_IN_YARD, 0.0, lat, lon, alt);
+		break;
 
 	case PolyProjectArgs::Mercator:
 		lat = ref.y;
@@ -111,6 +117,12 @@ const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType
 		break;
 	case PolyProjectArgs::BonneF:
 		gFallbackConverter.ConvertBnFToWgs84(ref.x, ref.y, 0.0, lat, lon, alt );
+		break;
+	case PolyProjectArgs::WO:
+		gFallbackConverter.ConvertWOToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
+		break;
+	case PolyProjectArgs::WOI:
+		gFallbackConverter.ConvertWOIToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
 		break;
 	}
 	if (projType != PolyProjectArgs::OSGB && !args->mercatorOut)
@@ -307,6 +319,22 @@ int main(int argc, char *argv[])
 		{
 			projType = PolyProjectArgs::OSI;
 		}
+		if( inproj == "wo")
+		{
+			projType = PolyProjectArgs::WO;
+		}
+		if( inproj == "woi")
+		{
+			projType = PolyProjectArgs::WOI;
+		}
+		if( inproj == "osgb")
+		{
+			projType = PolyProjectArgs::OSGB;
+		}
+		if( inproj == "osgby")
+		{
+			projType = PolyProjectArgs::OSGBY;
+		}
 	}
 
 	if (inputImageFilename.length() == 0)
@@ -424,11 +452,30 @@ int main(int argc, char *argv[])
 				// Add point to transform constraints
 				gConverter.ConvertGbos1936ToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
+			if (strcmp(line[0].GetVals(), "osy") == 0)
+			{
+				string mapref = line[1].GetVals();
+				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
+				// Add point to transform constraints
+				gConverter.ConvertGbos1936ToWgs84(dEasting * METRES_IN_YARD, dNorthing * METRES_IN_YARD, 0.0, lat, lon, alt);
+			}
 			if (strcmp(line[0].GetVals(), "osi") == 0)
 			{
 				string mapref = line[1].GetVals();
 				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
 				gConverter.ConvertOsiToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
+			}
+			if (strcmp(line[0].GetVals(), "wo") == 0)
+			{
+				string mapref = line[1].GetVals();
+				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
+				gConverter.ConvertWOToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
+			}
+			if (strcmp(line[0].GetVals(), "woi") == 0)
+			{
+				string mapref = line[1].GetVals();
+				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
+				gConverter.ConvertWOIToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
 			if (lat != -1.0 && lon != -1.0)
 			{
@@ -483,6 +530,27 @@ int main(int argc, char *argv[])
 				dNorthing = line[2].GetVald();
 
 				gConverter.ConvertOsiToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
+			}
+			if (strcmp(line[0].GetVals(), "wo") == 0)
+			{
+				dEasting = line[1].GetVald();
+				dNorthing = line[2].GetVald();
+
+				gConverter.ConvertWOToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
+			}
+			if (strcmp(line[0].GetVals(), "woi") == 0)
+			{
+				dEasting = line[1].GetVald();
+				dNorthing = line[2].GetVald();
+
+				gConverter.ConvertWOIToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
+			}
+			if (strcmp(line[0].GetVals(), "wp") == 0)
+			{
+				dEasting = line[1].GetVald();
+				dNorthing = line[2].GetVald();
+
+				gConverter.ConvertWOToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
 			if (strcmp(line[0].GetVals(), "cas") == 0)
 			{

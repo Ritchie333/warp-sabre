@@ -16,6 +16,9 @@
 #define PARIS_CENTRE_LAT 48.836439
 #define PARIS_CENTRE_LON 2.336506
 
+const double METRES_IN_MILE = 1609.347955248;
+const double METRES_IN_YARD = 0.9144022473;
+
 struct Ellip
 {
 	double a;
@@ -67,22 +70,21 @@ struct Datum
 	}
 };
 
-struct Tmgriddata
+struct GridData
 {
 	Ellip ellip;
 	double F0;
 	double Lat0;
 	double Lon0;
+	double Unit;
 	double FE;
 	double FN;
-	double e_min;
-	double e_max;
-	double n_min;
-	double n_max;
 
-	Tmgriddata() : ellip( 0, 0 ) {}
+	GridData() : ellip( 0, 0 ) {}
 };
 
+typedef void ( * ConvertFunc )( double inlat, double inlon, double inhe,
+								  double &outlat, double &outlon, double &outhe );
 
 double sech( double x );
 double arsinh( double x );
@@ -102,8 +104,8 @@ double E_N_to_Lat(double East, double North, double a, double b, double e0, doub
 double E_N_to_Long(double East, double North, double a, double b, double e0, double n0, double f0, double PHI0, double LAM0);
 double calc_M(double latdiff, double latsum, double nn, double eb, double F0);
 
-void TM2Geo( double East, double North, const Tmgriddata& TMgrid, double& latOut, double& lngOut );
-void Geo2TM( double lat, double lon, const Tmgriddata& TMgrid, double &eaOut, double &noOut );
+void TM2Geo( double East, double North, const GridData& TMgrid, double& latOut, double& lngOut );
+void Geo2TM( double lat, double lon, const GridData& TMgrid, double &eaOut, double &noOut );
 void Geo2Geo( double lat, double lon, const struct Datum& datum_a, const struct Datum& datum_b, double& latOut, double &lngOut );
 
 void ConvertGbos1936ToWgs84(double ea, double no, double he,
@@ -111,22 +113,26 @@ void ConvertGbos1936ToWgs84(double ea, double no, double he,
 void ConvertOsiToWgs84(double ea, double no, double he,
 					   double &latOut, double &lonOut, double &heOut);
 void ConvertCasToWgs84(double ea, double no, double he,
-					   double &latOut, double &lonOut, double &heOut);
+					   double &latOut, double &lonOut, double &heOut,
+					   const GridData &CSGrid, ConvertFunc convert);
 void ConvertBnToMercator(const struct Ellip& ellip, const double sf, double orglat, double orglon, double ea, double no, double he,
 					  double &latOut, double &lonOut, double &heOut);
 void ConvertWgs84ToGbos1936(double lat, double lon, double he,
 							double &eaOut, double &noOut, double &heOut);
 void ConvertWgs84ToOsi(double lat, double lon, double he,
 					   double &eaOut, double &noOut, double &heOut);
-void ConvertWgs84ToCas(double lat, double lon, double he, double &eaoOut, double &noOut);
+void ConvertWgs84ToCas(double lat, double lon, double he, double &eaoOut, double &noOut,
+	const GridData &CSGrid, ConvertFunc convert);
 void ConvertMercatorToBn(const struct Ellip& ellip, const double sf, const double orglat, const double orglon,
 	double lat, double lon, double he, double &eaoOut, double &noOut);
 void ConvertWgs84ToGbos1936LatLng(double lat, double lon, double he,
 								  double &latOut, double &lngOut);
 void ConvertGbos1936LatLngToWgs84(double gboslat, double gboslon, double he,
 								  double &latOut, double &lngOut, double &heOut);
-void ConvertOsi65ToWgs84(double osilat, double osilon, double &latOut, double &lngOut);
-void ConvertWgs84ToOsi65(double lat, double lon, double &latOut, double &lonOut);
+void ConvertOsi65ToWgs84(double osilat, double osilon, double he, double &latOut, double &lngOut, double &heOut);
+void ConvertOsi65ToWgs84D(double osilat, double osilon, double he, double &latOut, double &lngOut, double &heOut);
+void ConvertWgs84ToOsi65(double lat, double lon, double he, double &latOut, double &lonOut, double &heOut);
+void ConvertWgs84ToOsi65D(double lat, double lon, double he, double &latOut, double &lonOut, double &heOut);
 void GetOsiShift(double lat, double lon, double &latOut, double &lonOut);
 void ConvertParisToWgs84(double glat, double glon, double &latOut, double &lonOut );
 void ConvertWgs84ToParis(double lat, double lon, double &glatOut, double &glonOut );
@@ -143,6 +149,10 @@ public:
 						   double &latOut, double &lonOut, double &heOut);
 	void ConvertCasToWgs84(double ea, double no, double he,
 						   double &latOut, double &lonOut, double &heOut);
+	void ConvertWOToWgs84(double ea, double no, double he,
+							double &latOut, double &lonOut, double &heOut);
+	void ConvertWOIToWgs84(double ea, double no, double he,
+							double &latOut, double &lonOut, double &heOut);
 	void ConvertBnSToWgs84(double ea, double no, double he,
 						   double &latOut, double &lonOut, double &heOut);
 	void ConvertBnIToWgs84(double ea, double no, double he,
@@ -154,6 +164,8 @@ public:
 	void ConvertWgs84ToOsi(double lat, double lon, double he,
 						   double &eaOut, double &noOut, double &heOut);
 	void ConvertWgs84ToCas(double lat, double lon, double he, double &eaOut, double &noOut);
+	void ConvertWgs84ToWO(double lat, double lon, double he, double &eaOut, double &noOut);
+	void ConvertWgs84ToWOI(double lat, double lon, double he, double &eaOut, double &noOut);
 	void ConvertWgs84ToBnS(double lat, double lon, double he, double &eaOut, double &noOut);
 	void ConvertWgs84ToBnI(double lat, double lon, double he, double &eaOut, double &noOut);
 	void ConvertWgs84ToBnF(double lat, double lon, double he, double &eaOut, double &noOut);

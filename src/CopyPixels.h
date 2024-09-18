@@ -31,6 +31,13 @@ public:
 	virtual bool CheckIfInBox(double lat, double lon);
 };
 
+class CopyPixelsWithOSYMask : public CopyPixelsWithOsMask
+{
+public:
+	CopyPixelsWithOSYMask() {}
+	virtual void UpdateBoundingBox(const char *mapref);
+};
+
 class CopyPixelsWithRawMask : public CopyPixelsWithOsMask
 {
 public:
@@ -88,6 +95,20 @@ private:
 	long UTMEasting( const int zone, const int easting );
 	int zwest, zeast;
 
+};
+
+class CopyPixelsWithWO : public CopyPixelsWithCassini
+{
+public:
+	CopyPixelsWithWO() {}
+	virtual bool CheckIfInBox(double lat, double lon);
+};
+
+class CopyPixelsWithWOI : public CopyPixelsWithCassini
+{
+public:
+	CopyPixelsWithWOI() {}
+	virtual bool CheckIfInBox(double lat, double lon);
 };
 
 class CopyPixelsWithMercator : public CopyPixels

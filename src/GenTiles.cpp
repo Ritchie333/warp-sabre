@@ -527,6 +527,8 @@ int main(int argc, char **argv)
 		mergeTiles = (po.GetIntArg("merge") == 1);
 	if (po.HasArg("output"))
 		outFolder = po.GetArg("output");
+	if( po.HasArg("out"))
+		outFolder = po.GetArg("out");
 	if (po.HasArg("bounds"))
 		boundsFilename = po.GetArg("bounds");
 
