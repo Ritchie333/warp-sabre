@@ -12,8 +12,8 @@ using namespace std;
 
 class HelmertConverter gConverter;
 
-#define BEGIN_MASK_MAP(type)	string sType = type;
-#define	MASK_ENTRY(name,class)	if( sType == name ) { mask = new class; }
+#define BEGIN_MASK_MAP(type)	const char* sType = type;
+#define	MASK_ENTRY(name,class)	if( !strcasecmp( sType, name ) ) { mask = new class; }
 #define END_MASK_MAP()
 
 CopyPixels *CopyPixels::Create(const char *type)
