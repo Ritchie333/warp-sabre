@@ -13,12 +13,15 @@ using namespace std;
 #include "Gbos1936.h"
 
 struct Ellip Airy( 6377563.3963534083, 6356256.909589071, 0.006670540000123428764, 0.081947147053796327738 );
+struct Ellip AiryMod( 6377340.189446778, 6356034.448383377, 0.006670540000123428764, 0.081947147053796327738 );
 struct Ellip GRS80( 6378137, 6356752.314140356, 0.0066943800229007876, 0.0820944381519172 );
 struct Ellip Int24( 6378388, 6356911.946127946 );
 struct Ellip Plessis( 6376523.0, 6355862.9333 );
 
 struct Datum ED50 = { Int24, 86, 96, 120, 0, 0, 0, 0 };
 struct Datum WGS84 = { GRS80, 0, 0, 0, 0, 0, 0, 0 };
+struct Datum GBOS1936 = { Airy, 446.448, 125.157, -542.06, -0.1502, -0.247, -0.8421, 20.4894 };
+struct Datum OSI65 = { AiryMod, -482.53, 130.596, -564.557, 1.042, 0.214, 0.631, -8.15 };
 struct Datum Michelin = { Plessis, 1118, 23, 66, 0, 0, 0, 0 };
 
 struct GridData MakeCasDelamere()
@@ -41,7 +44,7 @@ struct GridData MakeCasWO()
     gd.F0 = 1;
     gd.Lat0 = 0.8834456605345643;
     gd.Lon0 = -0.02089612900242731;
-    gd.Unit = 1;
+    gd.Unit = 1.0000033326800815;
     gd.FE = 500000;
     gd.FN = 100000;
     return gd;
@@ -54,7 +57,7 @@ struct GridData MakeCasWOI()
     gd.F0 = 1;
     gd.Lat0 = 53.5 * ( M_PI / 180 );
     gd.Lon0 = -8 * ( M_PI / 180 );
-    gd.Unit = 1;
+    gd.Unit = 1.0000033326800815;
     gd.FE = 199990;
     gd.FN = 249975;
     return gd;
@@ -744,7 +747,7 @@ End Function*/
 
 void ConvertCasToWgs84(double ea, double no, double he,
                        double &latOut, double &lonOut, double &heOut,
-                       const GridData& CSGrid, ConvertFunc convert )
+                       const GridData& CSGrid, const Datum& datum )
 {
     const long double a = CSGrid.ellip.a / CSGrid.Unit;
     const long double b = CSGrid.ellip.b / CSGrid.Unit;
@@ -790,7 +793,7 @@ void ConvertCasToWgs84(double ea, double no, double he,
     double gboslat = MM * (180 / M_PI);
     double gboslng = (CSGrid.Lon0 + TT) * (180 / M_PI);
 
-    convert(gboslat, gboslng, he, latOut, lonOut, heOut);
+    Geo2Geo( gboslat, gboslng, datum, WGS84, latOut, lonOut );
 }
 
 void ConvertBnToMercator(const struct Ellip& ellip, const double sf, double orglat, double orglon, double ea, double no, double he,
@@ -1002,7 +1005,7 @@ void ConvertWgs84ToOsi(double lat, double lon, double he,
 void ConvertWgs84ToCas(double wlat, double wlon, double he,
                        double &eaOut, double &noOut,
                        const GridData& CSGrid,
-                       ConvertFunc convert )
+                       const Datum& datum )
 {
     const double a = CSGrid.ellip.a / CSGrid.Unit;
     const double b = CSGrid.ellip.a / CSGrid.Unit;
@@ -1011,8 +1014,7 @@ void ConvertWgs84ToCas(double wlat, double wlon, double he,
 
     double gbos36lat2 = 0.0;
     double gbos36lon2 = 0.0;
-    double heOut = 0.0;
-    convert(wlat, wlon, he, gbos36lat2, gbos36lon2, heOut);
+    Geo2Geo( wlat, wlon, WGS84, datum, gbos36lat2, gbos36lon2 );
 
     long double lat = gbos36lat2 * (M_PI / 180.0);
     long double lon = gbos36lon2 * (M_PI / 180.0);
@@ -1062,14 +1064,14 @@ void ConvertMercatorToBn(const struct Ellip& ellip, const double sf, const doubl
     noOut = X;
 }
 
-double calc_M(double latdiff, double latsum, double nn, double eb, double F0)
+double calc_M(long double latdiff, long double latsum, long double nn, long double eb, double F0)
 {
-    double n2 = pow(nn, 2);
-    double n3 = pow(nn, 3);
-    double BB = (1 + nn + ((5 / 4) * n2) + ((5 / 4) * n3)) * latdiff;
-    double CC = ((3 * nn) + (3 * n2) + ((21 / 8) * n3)) * sin(latdiff) * cos(latsum);
-    double DD = (((15 / 8) * n2) + ((15 / 8) * n3)) * sin(2 * latdiff) * cos(2 * latsum);
-    double EE = ((35 / 24) * n3) * sin(3 * latdiff) * cos(3 * latsum);
+    long double n2 = pow(nn, 2);
+    long double n3 = pow(nn, 3);
+    long double BB = (1 + nn + (1.25 * n2) + (1.25 * n3)) * latdiff;
+    long double CC = ((3 * nn) + (3 * n2) + (2.625 * n3)) * sin(latdiff) * cos(latsum);
+    long double DD = ((1.875 * n2) + (1.875 * n3)) * sin(2 * latdiff) * cos(2 * latsum);
+    long double EE = (1.4583333333333333 * n3) * sin(3 * latdiff) * cos(3 * latsum);
 
     return (eb * F0 * (BB - CC + DD - EE));
 }
@@ -1166,14 +1168,6 @@ void ConvertOsi65ToWgs84(double osilat, double osilon, double he, double &latOut
     heOut = 0.0;
 }
 
-void ConvertOsi65ToWgs84D(double osilat, double osilon, double he, double &latOut,
-                         double &lonOut, double& heOut )
-{
-    ConvertOsi65ToWgs84( osilat * ( M_PI / 180 ), osilon * ( M_PI / 180 ), he, latOut, lonOut, heOut );
-    latOut *= ( 180 / M_PI );
-    lonOut *= ( 180 / M_PI );
-}
-
 void ConvertWgs84ToOsi65(double lat, double lon, double he, double &latOut, double &lonOut, double &heOut)
 {
     double old_lat = 0;
@@ -1200,13 +1194,6 @@ void ConvertWgs84ToOsi65(double lat, double lon, double he, double &latOut, doub
         }
     }
     heOut = 0.0;
-}
-
-void ConvertWgs84ToOsi65D(double lat, double lon, double he, double &latOut, double &lonOut, double &heOut)
-{
-    ConvertWgs84ToOsi65( lat * ( M_PI / 180 ), lon * ( M_PI / 180 ), he, latOut, lonOut, heOut );
-    latOut *= ( 180 / M_PI );
-    lonOut *= ( 180 / M_PI );
 }
 
 void GetOsiShift(double lat, double lon, double &latOut, double &lonOut)
@@ -1422,19 +1409,19 @@ void HelmertConverter::ConvertWgs84ToOsi(double lat, double lon, double he,
 void HelmertConverter::ConvertCasToWgs84(double ea, double no, double he,
                                          double &latOut, double &lonOut, double &heOut)
 {
-    ::ConvertCasToWgs84(ea, no, he, latOut, lonOut, heOut, MakeCasDelamere(), ::ConvertGbos1936ToWgs84);
+    ::ConvertCasToWgs84(ea, no, he, latOut, lonOut, heOut, MakeCasDelamere(), GBOS1936);
 }
 
 void HelmertConverter::ConvertWOToWgs84(double ea, double no, double he,
 							double &latOut, double &lonOut, double &heOut)
 {
-    ::ConvertCasToWgs84(ea, no, he, latOut, lonOut, heOut, MakeCasWO(), ::ConvertGbos1936ToWgs84);
+    ::ConvertCasToWgs84(ea, no, he, latOut, lonOut, heOut, MakeCasWO(), GBOS1936);
 }
 
 void HelmertConverter::ConvertWOIToWgs84(double ea, double no, double he,
 							double &latOut, double &lonOut, double &heOut)
 {
-    ::ConvertCasToWgs84(ea, no, he, latOut, lonOut, heOut, MakeCasWOI(), ::ConvertOsi65ToWgs84D);
+    ::ConvertCasToWgs84(ea, no, he, latOut, lonOut, heOut, MakeCasWOI(), OSI65);
 }
 
 void HelmertConverter::ConvertBnSToWgs84(double lat, double lon, double he,
@@ -1470,19 +1457,19 @@ void HelmertConverter::ConvertBnFToWgs84(double ea, double no, double he,
 void HelmertConverter::ConvertWgs84ToCas(double lat, double lon, double he,
                                          double &eaOut, double &noOut)
 {
-    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut, MakeCasDelamere(), ::ConvertWgs84ToGbos1936);
+    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut, MakeCasDelamere(), GBOS1936);
 }
 
 void HelmertConverter::ConvertWgs84ToWO(double lat, double lon, double he,
                                         double &eaOut, double &noOut )
 {
-    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut, MakeCasWO(), ::ConvertWgs84ToGbos1936);
+    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut, MakeCasWO(), GBOS1936);
 }
 
 void HelmertConverter::ConvertWgs84ToWOI(double lat, double lon, double he,
                                         double &eaOut, double &noOut )
 {
-    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut, MakeCasWOI(), ::ConvertWgs84ToOsi65D);
+    ::ConvertWgs84ToCas(lat, lon, he, eaOut, noOut, MakeCasWOI(), OSI65);
 }
 
 void HelmertConverter::ConvertWgs84ToBnS(double lat, double lon, double he,
