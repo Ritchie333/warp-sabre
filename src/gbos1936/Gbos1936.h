@@ -109,17 +109,17 @@ void ConvertGbos1936ToWgs84(double ea, double no, double he,
 							double &latOut, double &lonOut, double &heOut);
 void ConvertOsiToWgs84(double ea, double no, double he,
 					   double &latOut, double &lonOut, double &heOut);
-void ConvertCasToWgs84(double ea, double no, double he,
+void ConvertCasToGeo(double ea, double no, double he,
 					   double &latOut, double &lonOut, double &heOut,
-					   const GridData &CSGrid, const Datum& datum);
+					   const GridData &CSGrid);
 void ConvertBnToMercator(const struct Ellip& ellip, const double sf, double orglat, double orglon, double ea, double no, double he,
 					  double &latOut, double &lonOut, double &heOut);
 void ConvertWgs84ToGbos1936(double lat, double lon, double he,
 							double &eaOut, double &noOut, double &heOut);
 void ConvertWgs84ToOsi(double lat, double lon, double he,
 					   double &eaOut, double &noOut, double &heOut);
-void ConvertWgs84ToCas(double lat, double lon, double he, double &eaoOut, double &noOut,
-	const GridData &CSGrid, const Datum& datum);
+void ConvertGeoToCas(double lat, double lon, double he, double &eaoOut, double &noOut,
+	const GridData &CSGrid);
 void ConvertMercatorToBn(const struct Ellip& ellip, const double sf, const double orglat, const double orglon,
 	double lat, double lon, double he, double &eaoOut, double &noOut);
 void ConvertWgs84ToGbos1936LatLng(double lat, double lon, double he,
