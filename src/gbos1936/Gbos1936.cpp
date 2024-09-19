@@ -753,7 +753,7 @@ void ConvertCasToWgs84(double ea, double no, double he,
     const long double b = CSGrid.ellip.b / CSGrid.Unit;
     const long double e2 = ((a * a) - (b * b)) / (a * a);
 
-    // const long double QQ = ( 1 - ( e2 / 4 ) - ( ( 3 / 64 ) * pow( e2, 2 ) ) - ( ( 5 / 256 ) * pow( e2, 3 ) ) );
+    const long double QQ = ( 1 - ( e2 / 4 ) - ( 0.046875 * pow( e2, 2 ) ) - ( 0.01953125 * pow( e2, 3 ) ) );
     const long double N = ((a - b) / (a + b));
 
     long double lat_ = ((no - CSGrid.FN) / (a * CSGrid.F0)) + CSGrid.Lat0;
@@ -769,16 +769,16 @@ void ConvertCasToWgs84(double ea, double no, double he,
             iter_complete = true;
         }
     }
-    // long double M0 = calc_M( Lat0, Lon0, N, b, 1 );
-    // long double M1 = M0 + no - FN;
-    // long double u1 = M1 / ( a * QQ );
-    // long double e1 = (1-(sqrt(1-e2))) / (1+(sqrt(1-e2)));
+    long double M0 = calc_M( CSGrid.Lat0, CSGrid.Lat0, N, b, 1 );
+    long double M1 = M0 + no - CSGrid.FN;
+    long double u1 = M1 / ( a * QQ );
+    long double e1 = (1-(sqrt(1-e2))) / (1+(sqrt(1-e2)));
     long double w1 = lat_;
-    // long double w1a = ((3*e1/2) - (27*e1*e1*e1/32)) * sin(2*u1);
-    // long double w1b = ((21*e1*e1/16) - (55*e1*e1*e1*e1/32)) * sin(4*u1);
-    // long double w1c = (151*e1*e1*e1/96) * sin(6*u1);
-    // long double w1d = (1097*e1*e1*e1*e1/512) * sin(8*u1);
-    // long double w1 = u1+w1a+w1b+w1c+w1d;
+    long double w1a = ((3*e1/2) - (27*e1*e1*e1/32)) * sin(2*u1);
+    long double w1b = ((21*e1*e1/16) - (55*e1*e1*e1*e1/32)) * sin(4*u1);
+    long double w1c = (151*e1*e1*e1/96) * sin(6*u1);
+    long double w1d = (1097*e1*e1*e1*e1/512) * sin(8*u1);
+    w1 = u1+w1a+w1b+w1c+w1d;
     long double T1 = pow(tan(w1), 2);
     long double v1 = a / sqrt(1 - (e2 * pow(sin(w1), 2)));
     long double r1 = (a * (1 - e2)) / pow((1 - (e2 * pow(sin(w1), 2))), 1.5);
@@ -787,7 +787,7 @@ void ConvertCasToWgs84(double ea, double no, double he,
     long double LL = (v1 * tan(w1)) / r1;
     long double MM = w1 - (LL * ((pow(D, 2) / 2) - KK));
     long double RR = (T1 * (pow(D, 3) / 3));
-    long double SS = ((1 + (3 * T1)) * T1 * (pow(D, 5) / 15));
+    long double SS = ((1 + (3 * T1)) * T1 * (pow(D, 5) / 15.0));
     long double TT = ((D - RR + SS) / cos(w1));
 
     double gboslat = MM * (180 / M_PI);
