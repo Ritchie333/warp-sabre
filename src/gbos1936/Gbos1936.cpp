@@ -745,6 +745,12 @@ EndOfComputeBearing:
 
 End Function*/
 
+void YardsToMetres( const int ine, const int inn, int& oute, int& outn )
+{
+    oute = ( ( ine - 1000000 ) * METRES_IN_YARD ) + 400000;
+    outn = ( ( inn - 1000000 ) * METRES_IN_YARD ) - 100000;
+}
+
 void ConvertCasToGeo(double ea, double no, double he,
                        double &latOut, double &lonOut, double &heOut,
                        const GridData& CSGrid )

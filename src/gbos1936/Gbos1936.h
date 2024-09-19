@@ -17,7 +17,7 @@
 #define PARIS_CENTRE_LON 2.336506
 
 const double METRES_IN_MILE = 1609.347955248;
-const double METRES_IN_YARD = 0.9144022473;
+const double METRES_IN_YARD = 0.9144;
 
 struct Ellip
 {
@@ -100,6 +100,8 @@ double Lat_H_to_Z(double PHI, double LAM, double H, double a, double b);
 double E_N_to_Lat(double East, double North, double a, double b, double e0, double n0, double f0, double PHI0, double LAM0);
 double E_N_to_Long(double East, double North, double a, double b, double e0, double n0, double f0, double PHI0, double LAM0);
 double calc_M(long double latdiff, long double latsum, long double nn, long double eb, double F0);
+
+void YardsToMetres( const int ine, const int inn, int& oute, int& outn );
 
 void TM2Geo( double East, double North, const GridData& TMgrid, double& latOut, double& lngOut );
 void Geo2TM( double lat, double lon, const GridData& TMgrid, double &eaOut, double &noOut );

@@ -90,8 +90,10 @@ void CopyPixelsWithOSYMask::UpdateBoundingBox(const char *mapref)
 	int dEasting = 0, dNorthing = 0;
 	if (2 == sscanf(mapref, "%d:%d", &dEasting, &dNorthing))
 	{
-		dEasting *= METRES_IN_YARD;
-		dNorthing *= METRES_IN_YARD;
+		int me = 0, mn = 0;
+		YardsToMetres( dEasting, dNorthing, me, mn );
+		dEasting = me;
+		dNorthing = mn;
 		if (!boxset || gsouth > dNorthing)
 			gsouth = dNorthing;
 		if (!boxset || gnorth < dNorthing)

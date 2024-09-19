@@ -71,6 +71,7 @@ const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType
 {
 	class PolyProjectArgs *args = (class PolyProjectArgs *)userPtr;
 	double lat = 0.0, lon = 0.0, alt = 0.0;
+	int me = 0, mn = 0;
 	switch (projType)
 	{
 	case PolyProjectArgs::OSGB:
@@ -95,7 +96,8 @@ const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType
 		}
 		break;
 	case PolyProjectArgs::OSGBY:
-		gFallbackConverter.ConvertGbos1936ToWgs84(ref.x * METRES_IN_YARD, ref.y * METRES_IN_YARD, 0.0, lat, lon, alt);
+		YardsToMetres( ref.x, ref.y, me, mn );
+		gFallbackConverter.ConvertGbos1936ToWgs84(me, mn, 0.0, lat, lon, alt);
 		break;
 
 	case PolyProjectArgs::Mercator:
@@ -456,8 +458,10 @@ int main(int argc, char *argv[])
 			{
 				string mapref = line[1].GetVals();
 				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
+				int me = 0, mn = 0;
+				YardsToMetres( dEasting, dNorthing, me, mn );
 				// Add point to transform constraints
-				gConverter.ConvertGbos1936ToWgs84(dEasting * METRES_IN_YARD, dNorthing * METRES_IN_YARD, 0.0, lat, lon, alt);
+				gConverter.ConvertGbos1936ToWgs84(me, mn, 0.0, lat, lon, alt);
 			}
 			if (strcmp(line[0].GetVals(), "osi") == 0)
 			{
