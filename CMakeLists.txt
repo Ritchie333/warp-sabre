@@ -3,7 +3,6 @@ project(warp-sabre LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_BUILD_TYPE Debug)
 
 find_package(ImageMagick REQUIRED COMPONENTS MagickWand)
 include_directories(${ImageMagick_INCLUDE_DIRS})
