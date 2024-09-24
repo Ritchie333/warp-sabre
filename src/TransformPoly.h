@@ -5,6 +5,7 @@
 #include "Tile.h"
 #include "Point.h"
 
+#include <string>
 #include <vector>
 using namespace std;
 

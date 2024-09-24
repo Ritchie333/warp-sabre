@@ -56,9 +56,9 @@ public:
     vector<string> inputFiles;
     string boundsFilename;
     string outFolder;
-    int minZoom;
-    int maxZoom;
-    int maxTilesLoaded;
+    unsigned int minZoom;
+    unsigned int maxZoom;
+    unsigned int maxTilesLoaded;
     bool mergeTiles;
     int targetNumThreads;
     
