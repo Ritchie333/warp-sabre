@@ -626,7 +626,7 @@ void TileRunner::RunTileJobs()
 			cout << maxDep[j] << " ";
 		cout << ")" << endl;
 #ifdef USE_MT_GENTILES
-		int tilesLoadable = ((int)maxDep.size() <= maxTilesLoaded);
+		int tilesLoadable = (maxDep.size() <= maxTilesLoaded);
 #else
 		int tilesLoadable = 0;
 #endif

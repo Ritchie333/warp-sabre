@@ -55,18 +55,30 @@ add_library(newmat STATIC
     src/newmat-10/newmat9.cpp
 )
 
-add_library( warp-conversion STATIC
+add_library(warp-conversion STATIC
     src/ganzc/LatLong-OSGBconversion.cpp
     src/gbos1936/Gbos1936.cpp
 )
 
-add_library( warp STATIC
+add_executable(warp-sabre
     src/CalibrationFile.cpp
-    src/CopyPixels.cpp
-    src/GetBounds.cpp
     src/ImageWarpByFunc.cpp
     src/ImgMagick.cpp
     src/ReadDelimitedFile.cpp
+    src/ProgramOptions.cpp
+    src/StringUtils.cpp
+    src/Tile.cpp
+    src/TransformPoly.cpp
+    src/WarpOs.cpp
+    src/WriteKml.cpp
+)
+
+add_executable(gentiles
+    src/CopyPixels.cpp
+    src/GenTiles.cpp
+    src/GetBounds.cpp
+    src/ImageWarpByFunc.cpp
+    src/ImgMagick.cpp
     src/ProgramOptions.cpp
     src/ReadDelimitedFile.cpp
     src/ReadKmlFile.cpp
@@ -75,20 +87,22 @@ add_library( warp STATIC
     src/StringUtils.cpp
     src/Tile.cpp
     src/TileJob.cpp
-    src/TransformPoly.cpp
-    src/WriteKml.cpp
-)
-
-add_executable(warp-sabre
-    src/WarpOs.cpp
-)
-
-add_executable(gentiles
-    src/GenTiles.cpp
 )
 
 add_executable(cleartiles
-    src/ClearTiles.cpp
+    src/CopyPixels.cpp
+    src/GenTiles.cpp
+    src/GetBounds.cpp
+    src/ImageWarpByFunc.cpp
+    src/ImgMagick.cpp
+    src/ProgramOptions.cpp
+    src/ReadDelimitedFile.cpp
+    src/ReadKmlFile.cpp
+    src/SlippyMapTile.cpp
+    src/SourceKml.cpp
+    src/StringUtils.cpp
+    src/Tile.cpp
+    src/TileJob.cpp
 )
 
 add_executable(testcas
@@ -106,7 +120,6 @@ target_link_libraries(warp-sabre
     PRIVATE morph
     PRIVATE newmat
     PRIVATE warp-conversion
-    PRIVATE warp
 )
 
 target_include_directories(gentiles PUBLIC
@@ -120,7 +133,6 @@ target_link_libraries(gentiles
     PRIVATE Boost::system
     PRIVATE morph
     PRIVATE warp-conversion
-    PRIVATE warp
 )
 
 target_include_directories(cleartiles PUBLIC
@@ -134,7 +146,6 @@ target_link_libraries(cleartiles
     PRIVATE Boost::system
     PRIVATE morph
     PRIVATE warp-conversion
-    PRIVATE warp
 )
 
 target_link_libraries(testcas
