@@ -12,7 +12,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 boost::mutex statusLock;
-volatile int gThreadsRunning = 0;
 boost::mutex accessTimeLock;
 
 using namespace std;
@@ -67,9 +66,7 @@ TileJob &TileJob::operator=(const TileJob &a)
 
 void TileJob::operator()()
 {
-	statusLock.lock();
 	this->originalObj->running = 1;
-	statusLock.unlock();
 
 	try
 	{
@@ -81,11 +78,8 @@ void TileJob::operator()()
 			cout << "Error: render failed (" << e << ")" << endl;
 	}
 
-	statusLock.lock();
 	this->originalObj->running = 0;
 	this->originalObj->complete = 1;
-	gThreadsRunning--;
-	statusLock.unlock();
 	runner->EndThread( boost::this_thread::get_id() );
 }
 
@@ -135,12 +129,9 @@ int TileJob::Render()
 				int status = RequestTileLoading(src, size, srcKml, this->maxTilesLoaded);
 				if (status == 0)
 				{
-					statusLock.lock();
 					this->originalObj->complete = 1;
 					this->originalObj->running = 0;
 					this->originalObj->failed = 1;
-					gThreadsRunning--;
-					statusLock.unlock();
 					if (verbose >= 1)
 						cout << "Error: Could not load tile" << endl;
 					throw(1000);
@@ -150,12 +141,9 @@ int TileJob::Render()
 			{
 				if (verbose >= 1)
 					cout << "Error:Loading dep not satisfied" << endl;
-				statusLock.lock();
 				this->originalObj->complete = 1;
 				this->originalObj->running = 0;
 				this->originalObj->failed = 1;
-				gThreadsRunning--;
-				statusLock.unlock();
 				throw(2000);
 			}
 		}
@@ -242,9 +230,7 @@ int TileJob::Render()
 	// temp.syncPixels();
 	// image.syncPixels();
 
-	statusLock.lock();
 	this->originalObj->complete = 1;
-	statusLock.unlock();
 
 	return 1;
 }
@@ -610,10 +596,8 @@ void TileRunner::RunTileJobs()
 		for (unsigned int jobNum = 0; jobNum < jobs.size(); jobNum++)
 		{
 			class TileJob &job = jobs[jobNum];
-			statusLock.lock();
 			int complete = job.originalObj->complete;
 			// cout << complete << "," ;
-			statusLock.unlock();
 			if (complete)
 				continue;
 			countRemaining++;
@@ -707,12 +691,9 @@ void TileRunner::RunTileJobs()
 				job.verbose = 1;
 
 				semaphore.wait();
+				statusLock.lock();
 				boost::thread* newThread = new boost::thread(job);
 				threads[ newThread->get_id() ] = newThread;
-
-				// Increment number of running threads
-				statusLock.lock();
-				gThreadsRunning++;
 				statusLock.unlock();
 			}
 			else // Do processing in serial
@@ -739,7 +720,10 @@ void TileRunner::RunTileJobs()
 void TileRunner::EndThread( boost::thread::id threadId )
 {
 	boost::thread* thread = threads[ threadId ];
+	statusLock.lock();
 	threads.erase( threadId );
+	statusLock.unlock();
+	cout << threads.size() << " threads" << endl;
 	delete thread;
 	semaphore.post();	// One less thread
 }
