@@ -28,7 +28,7 @@ using namespace std;
 #define OUT_TILE_WIDTH 256
 #define OUT_TILE_HEIGHT 256
 
-TileJob::TileJob()
+TileJob::TileJob( TileRunner* _runner )
 {
 	zoom = 0;
 	verbose = 2;
@@ -43,6 +43,7 @@ TileJob::TileJob()
 	srcSize = 0;
 	mergeTiles = false;
 	originalObj = this;
+	runner = _runner;
 }
 
 TileJob &TileJob::operator=(const TileJob &a)
@@ -60,12 +61,12 @@ TileJob &TileJob::operator=(const TileJob &a)
 	srcSize = a.srcSize;
 	mergeTiles = a.mergeTiles;
 	originalObj = a.originalObj;
+	runner = a.runner;
 	return *this;
 }
 
 void TileJob::operator()()
 {
-
 	statusLock.lock();
 	this->originalObj->running = 1;
 	statusLock.unlock();
@@ -85,6 +86,7 @@ void TileJob::operator()()
 	this->originalObj->complete = 1;
 	gThreadsRunning--;
 	statusLock.unlock();
+	runner->EndThread( boost::this_thread::get_id() );
 }
 
 int TileJob::Render()
@@ -368,7 +370,9 @@ const int TileJob::TargetThreads()
 //*****************************************
 
 
-TileRunner::TileRunner()
+TileRunner::TileRunner( const int numThreads ) :
+	maxTilesLoaded( numThreads ),
+	semaphore( numThreads )
 {
 	src = NULL;
 }
@@ -506,7 +510,7 @@ void TileRunner::SetupTileJobs()
 		for (int tileLon = srcWtile; tileLon <= srcEtile; tileLon++)
 			for (int tileLat = srcNtile; tileLat <= srcStile; tileLat++)
 			{
-				class TileJob job;
+				class TileJob job( this );
 
 				string outFilename = outFolder;
 				string outFolder0 = outFilename;
@@ -703,31 +707,14 @@ void TileRunner::RunTileJobs()
 				job.enableTileLoading = 0;
 				job.verbose = 1;
 
-				boost::thread test = boost::thread(job);
+				semaphore.wait();
+				boost::thread* newThread = new boost::thread(job);
+				threads[ newThread->get_id() ] = newThread;
 
 				// Increment number of running threads
 				statusLock.lock();
 				gThreadsRunning++;
 				statusLock.unlock();
-
-				// Count how many running
-				statusLock.lock();
-				int localThreadRunning = gThreadsRunning;
-				statusLock.unlock();
-				//cout << "threadsRunning: " << localThreadRunning << endl;
-
-				// Wait if we have enough running threads
-				while (localThreadRunning >= targetNumThreads)
-				{
-
-					boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(100);
-					boost::thread::sleep(timeout);
-
-					// Check if any have stopped
-					statusLock.lock();
-					localThreadRunning = gThreadsRunning;
-					statusLock.unlock();
-				}
 			}
 			else // Do processing in serial
 			{
@@ -741,23 +728,21 @@ void TileRunner::RunTileJobs()
 		// Wait for things to finish
 		cout << "Waiting for threads to finish...";
 		cout.flush();
-		statusLock.lock();
-		int localThreadRunning = gThreadsRunning;
-		statusLock.unlock();
-		while (localThreadRunning > 0)
-		{
-			boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(100);
-			boost::thread::sleep(timeout);
-
-			// Check if any have stopped
-			statusLock.lock();
-			localThreadRunning = gThreadsRunning;
-			statusLock.unlock();
+		while( threads.size() > 0 ) {
+			threads.begin()->second->join();
 		}
 		cout << "done" << endl;
 
 	} // End of dep depth loop
 
+}
+
+void TileRunner::EndThread( boost::thread::id threadId )
+{
+	boost::thread* thread = threads[ threadId ];
+	threads.erase( threadId );
+	delete thread;
+	semaphore.post();	// One less thread
 }
 
 const int TileRunner::CountFailures() const

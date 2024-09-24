@@ -44,6 +44,8 @@ int main(int argc, char **argv)
 	// Process program options
 	std::stringstream desc;
 	desc << "Allowed options" << endl;
+	desc << "  --minzoom arg         Minimum zoom level" << endl;
+	desc << "  --maxzoom arg         Maximum zoom level" << endl;
 	desc << "  --bounds arg          Bounds filename" << endl;
 	desc << "  --output arg          Output folder" << endl;
 	desc << "  --positional arg   	 Input KML files" << endl;
@@ -53,6 +55,8 @@ int main(int argc, char **argv)
 
 	string boundsFilename = "bounds.csv";
 	string outFolder = "out";
+	int minZoom = 1;
+	int maxZoom = 17;
 	if (po.HasArg("help"))
 	{
 		cout << desc.str() << endl;
@@ -64,6 +68,10 @@ int main(int argc, char **argv)
 		outFolder = po.GetArg("out");
 	if (po.HasArg("bounds"))
 		boundsFilename = po.GetArg("bounds");
+	if (po.HasArg("minzoom"))
+		minZoom = po.GetIntArg("minzoom");
+	if (po.HasArg("maxzoom"))
+		maxZoom = po.GetIntArg("maxzoom");
 
 	vector<string> inputFiles;
 	if (po.HasArg(NULL))
@@ -73,11 +81,11 @@ int main(int argc, char **argv)
 			cout << "input file " << inputFiles[i] << endl;
 	}
 
-	class TileRunner tileRun;
+	class TileRunner tileRun( 1 );
 	tileRun.inputFiles = inputFiles;
 	tileRun.boundsFilename = boundsFilename;
-	tileRun.minZoom = 1;
-	tileRun.maxZoom = 17;
+	tileRun.minZoom = minZoom;
+	tileRun.maxZoom = maxZoom;
 	tileRun.outFolder = outFolder;
 
 	tileRun.Init();

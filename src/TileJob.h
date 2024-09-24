@@ -3,6 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <boost/thread.hpp>
+#include <boost/interprocess/sync/interprocess_semaphore.hpp>
 using namespace std;
 #include "Tile.h"
 #include "SourceKml.h"
@@ -15,6 +18,8 @@ struct RescaleParams
 public:
 	double xscale, yscale, xori, yori;
 };
+
+class TileRunner;
 
 class TileJob
 {
@@ -32,7 +37,7 @@ public:
 	bool mergeTiles;
 	class TileJob *originalObj;
 
-	TileJob();
+	TileJob( TileRunner* runner);
 	TileJob &operator=(const TileJob &a);
 	int Render();
 	void operator()();
@@ -42,7 +47,7 @@ public:
     static const int TargetThreads();
 
 private:
-    
+    TileRunner* runner;
     static const Point RescaleTransform(const Point& in, void *userPtr);
     int GetResizedSubimage(class Tile &src, class Tile &dst, class ImgMagick &imageIn, class ImgMagick &imageOut);
 };
@@ -50,7 +55,7 @@ private:
 class TileRunner
 {
 public:
-    TileRunner();
+    TileRunner( const int numThreads);
     virtual ~TileRunner();
 
     vector<string> inputFiles;
@@ -58,7 +63,7 @@ public:
     string outFolder;
     unsigned int minZoom;
     unsigned int maxZoom;
-    unsigned int maxTilesLoaded;
+    const unsigned int maxTilesLoaded;
     bool mergeTiles;
     int targetNumThreads;
     
@@ -66,13 +71,16 @@ public:
     void SetupTileJobs();
     void RunTileJobs();
     void Clear();
+    void EndThread( boost::thread::id threadId );
     const int CountFailures() const;
 private:
     vector<TileJob> jobs;
+    map<boost::thread::id, boost::thread*> threads;
     DelimitedFile boundsFile;
     class Tile sourceBBox;
 	int sourceBBoxSet = 0;
     class SourceKml* src;
+    boost::interprocess::interprocess_semaphore semaphore;
 };
 
 #endif // TILE_JOB_H
