@@ -91,7 +91,7 @@ add_executable(gentiles
 
 add_executable(cleartiles
     src/CopyPixels.cpp
-    src/GenTiles.cpp
+    src/ClearTiles.cpp
     src/GetBounds.cpp
     src/ImageWarpByFunc.cpp
     src/ImgMagick.cpp
