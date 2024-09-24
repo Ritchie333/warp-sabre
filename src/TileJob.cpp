@@ -723,7 +723,6 @@ void TileRunner::EndThread( boost::thread::id threadId )
 	statusLock.lock();
 	threads.erase( threadId );
 	statusLock.unlock();
-	cout << threads.size() << " threads" << endl;
 	delete thread;
 	semaphore.post();	// One less thread
 }
