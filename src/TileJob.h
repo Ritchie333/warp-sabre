@@ -63,9 +63,8 @@ public:
     string outFolder;
     unsigned int minZoom;
     unsigned int maxZoom;
-    const unsigned int maxTilesLoaded;
+    unsigned int maxTilesLoaded;
     bool mergeTiles;
-    int targetNumThreads;
     
     void Init();
     void SetupTileJobs();

@@ -123,13 +123,13 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
-	class TileRunner tileRun( maxTilesLoaded );
+	class TileRunner tileRun( targetNumThreads );
 	tileRun.inputFiles = inputFiles;
 	tileRun.boundsFilename = boundsFilename;
 	tileRun.minZoom = minZoom;
 	tileRun.maxZoom = maxZoom;
 	tileRun.outFolder = outFolder;
-	tileRun.targetNumThreads = targetNumThreads;
+	tileRun.maxTilesLoaded = maxTilesLoaded;
 	tileRun.mergeTiles = mergeTiles;
 
 	tileRun.Init();

@@ -371,7 +371,6 @@ const int TileJob::TargetThreads()
 
 
 TileRunner::TileRunner( const int numThreads ) :
-	maxTilesLoaded( numThreads ),
 	semaphore( numThreads )
 {
 	src = NULL;
