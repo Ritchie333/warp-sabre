@@ -2,6 +2,7 @@
 #ifndef TRANSFORM_POLY_H
 #define TRANSFORM_POLY_H
 
+#include "Tile.h"
 #include "Point.h"
 
 #include <vector>
@@ -30,6 +31,44 @@ public:
 	vector<Point> originalPoints, transformedPoints;
 	int order;
 };
+
+class PolyProjectArgs
+{
+public:
+	typedef enum
+	{
+		OSGB = 0,
+		Mercator,
+		Cassini,
+		BonneS,
+		BonneI,
+		BonneF,
+		OSI,
+		WO,
+		WOI,
+		OSGBY
+	} ProjType;
+
+	vector<double> imgToRefPoly;
+	class Tile *ptile;
+	ProjType projType;
+	int mercatorOut;
+	int order;
+
+	PolyProjectArgs()
+	{
+		ptile = 0;
+		projType = OSGB;
+		mercatorOut = 0;
+		order = 2;
+	}
+};
+
+const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType, class Tile &tile, void *userPtr);
+const Point PolyProjectWithPtr(const Point& in, void *userPtr);
+void AddPointPoly(class Tile &tile, class PolyProjection &polyEst, double lat, double lon, double x, double y);
+void SplitGbosRef(string in, string &zone, long &easting, long &northing);
+void DrawCross(class ImgFrameBase &img, int x, int y, double r, double g, double b);
 
 /*template <class outType, class InType, class InTypeIt> outType CastVector (InType in) {
 	outType out;

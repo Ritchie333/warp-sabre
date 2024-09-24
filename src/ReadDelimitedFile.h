@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include "TransformPoly.h"
 using namespace std;
 
 class DelimitedFileValue
@@ -46,10 +47,10 @@ public:
 
 class DelimitedFile
 {
-public:
+protected:
 	vector<class DelimitedFileLine> lines;
 	string delimiter;
-
+public:
 	DelimitedFile();
 	DelimitedFile(const class DelimitedFile &a);
 	virtual ~DelimitedFile();
@@ -75,11 +76,6 @@ public:
 protected:
 	ifstream file;
 };
-
-vector<double> ExtractColumnFromDelimitedFile(class DelimitedFile &file, int colNum);
-void CopyColumnFromDelimitedFile(class DelimitedFile &file, int colNum, class DelimitedFile &out);
-void CopyColumnFromDelimitedFileVec(vector<class DelimitedFile> &files,
-									int colNum, vector<class DelimitedFile> &out);
 
 //**********************************************************************
 

@@ -210,69 +210,6 @@ class DelimitedFileLine &DelimitedFile::operator[](int num)
 	return lines[num];
 }
 
-vector<double> ExtractColumnFromDelimitedFile(class DelimitedFile &file, int colNum)
-{
-	vector<double> output;
-	unsigned int numLines = file.NumLines();
-	for (unsigned int i = 0; i < numLines; i++)
-	{
-		class DelimitedFileLine &line = file.GetLine(i);
-		if (colNum < (int)line.NumVals())
-			output.push_back(line.GetVal(colNum).GetVald());
-		else
-			output.push_back(0.0);
-	}
-	return output;
-}
-
-void CopyColumnFromDelimitedFile(class DelimitedFile &file, int colNum, class DelimitedFile &out)
-{
-	vector<double> output;
-	unsigned int numLines = file.NumLines();
-
-	// Ensure output file has same number of lines
-	while (out.NumLines() < numLines)
-	{
-		class DelimitedFileLine templine;
-		out.lines.push_back(templine);
-	}
-
-	for (unsigned int i = 0; i < numLines; i++)
-	{
-		class DelimitedFileLine &inLine = file.GetLine(i);
-		class DelimitedFileLine &outLine = out.GetLine(i);
-
-		if (colNum < (int)inLine.NumVals())
-		{
-			class DelimitedFileValue tempVal;
-			tempVal.SetVals(inLine.GetVal(colNum).GetVals());
-			outLine.vals.push_back(tempVal);
-		}
-		else
-		{
-			class DelimitedFileValue tempVal;
-			outLine.vals.push_back(tempVal);
-		}
-	}
-}
-
-void CopyColumnFromDelimitedFileVec(vector<class DelimitedFile> &files,
-									int colNum, vector<class DelimitedFile> &out)
-{
-	// Ensure output has same size
-	while (out.size() < files.size())
-	{
-		class DelimitedFile temp;
-		out.push_back(temp);
-	}
-
-	// Copy data
-	for (unsigned int i = 0; i < files.size(); i++)
-	{
-		CopyColumnFromDelimitedFile(files[i], colNum, out[i]);
-	}
-}
-
 //***************************************************************
 
 TextFile::TextFile()

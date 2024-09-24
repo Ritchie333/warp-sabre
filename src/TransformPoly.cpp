@@ -2,6 +2,8 @@
 #include "TransformPoly.h"
 #include "newmat-10/newmat.h"
 #include "ErrorHandling.h"
+#include "gbos1936/Gbos1936.h"
+#include "ImgFrameBase.h"
 #include <iostream>
 #include <math.h>
 #ifdef use_namespace
@@ -195,4 +197,118 @@ vector<double> PolyProjection::Estimate()
 	}
 	vector<double> empty;
 	return empty;
+}
+
+const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType, class Tile &tile, void *userPtr)
+{
+	HelmertConverter converter;
+	class PolyProjectArgs *args = (class PolyProjectArgs *)userPtr;
+	double lat = 0.0, lon = 0.0, alt = 0.0;
+	int me = 0, mn = 0;
+	switch (projType)
+	{
+	case PolyProjectArgs::OSGB:
+		if (args->mercatorOut)
+		{
+			converter.ConvertGbos1936ToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
+		}
+		else
+		{
+			lat = ref.y;
+			lon = ref.x;
+			alt = 0.0;
+		}
+		break;
+	case PolyProjectArgs::OSGBY:
+		YardsToMetres( ref.x, ref.y, me, mn );
+		converter.ConvertGbos1936ToWgs84(me, mn, 0.0, lat, lon, alt);
+		break;
+
+	case PolyProjectArgs::Mercator:
+		lat = ref.y;
+		lon = ref.x;
+		alt = 0.0;
+		break;
+	case PolyProjectArgs::OSI:
+		converter.ConvertOsiToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
+		break;
+	case PolyProjectArgs::Cassini:
+		converter.ConvertCasToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
+		break;
+	case PolyProjectArgs::BonneS:
+		converter.ConvertBnSToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
+		break;
+	case PolyProjectArgs::BonneI:
+		converter.ConvertBnIToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
+		break;
+	case PolyProjectArgs::BonneF:
+		converter.ConvertBnFToWgs84(ref.x, ref.y, 0.0, lat, lon, alt );
+		break;
+	case PolyProjectArgs::WO:
+		converter.ConvertWOToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
+		break;
+	case PolyProjectArgs::WOI:
+		converter.ConvertWOIToWgs84(ref.x, ref.y, 0.0, lat, lon, alt);
+		break;
+	}
+	if (projType != PolyProjectArgs::OSGB && !args->mercatorOut)
+	{
+		cout << "Error: not implemented" << endl;
+		exit(0);
+	}
+
+	Point pout = tile.Project(lat, lon);
+	// if(ref[0] >= 333000 && ref[1] <= 550000)
+	//{
+		// cout << "corner " << ref[0] << "," << ref[1] << "\t" << pout[0] << "," << pout[1] << endl;
+	//}
+
+	return pout;
+}
+
+const Point PolyProjectWithPtr(const Point& in, void *userPtr)
+{
+	class PolyProjectArgs *args = (class PolyProjectArgs *)userPtr;
+	const Point ref = PolyProject(in, args->imgToRefPoly, args->order);
+	if (!args->ptile)
+		throw(0);
+	/*double lat=0.0, lon=0.0, alt=0.0;
+	ConvertGbos1936ToWgs84(ref[0], ref[1],0.0, lat, lon, alt);
+	vector<double> pout;
+	//cout << args->ptile->latmin << "\t" << args->ptile->latmax << "\t" << args->ptile->sy << endl;
+
+	args->ptile->Project(lat, lon, pout);
+	//cout << ref[0] << "\t" << ref[1] << "\t" << pout[0] << "\t" << pout[1] << endl;
+	return pout;*/
+	return ProjRefToOutImg(ref, args->projType, *args->ptile, userPtr);
+}
+
+void AddPointPoly(class Tile &tile, class PolyProjection &polyEst, double lat, double lon, double x, double y)
+{
+	// cout << "AddPointPoly " << lat << "," << lon << "," << x << "," << y << endl;
+	Point p = tile.Project(lat, lon);
+	polyEst.AddPoint(x, y, p);
+}
+
+void SplitGbosRef(string in, string &zone, long &easting, long &northing)
+{
+	// cout << in << endl;
+	zone = in.substr(0, 2);
+	if (in.length() != 8)
+		ThrowError<logic_error>("Unexpected length of map reference", __LINE__, __FILE__);
+	easting = atoi(in.substr(2, 3).c_str()) * 100;
+	northing = atoi(in.substr(5, 3).c_str()) * 100;
+	// cout << zone << "," << easting << "," << northing << endl;
+}
+
+void DrawCross(class ImgFrameBase &img, int x, int y, double r, double g, double b)
+{
+	cout << x << "," << y << endl;
+	for (int i = -10; i <= 10; i++)
+		for (int j = -10; j <= 10; j++)
+		{
+			img.SetPix(x + i, y + j, 0, r);
+			img.SetPix(x + i, y + j, 1, g);
+			img.SetPix(x + i, y + j, 2, b);
+		}
 }

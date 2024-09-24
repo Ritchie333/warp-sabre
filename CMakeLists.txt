@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.30)
 project(warp-sabre LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_BUILD_TYPE Debug)
 
 find_package(ImageMagick REQUIRED COMPONENTS MagickWand)
 include_directories(${ImageMagick_INCLUDE_DIRS})
@@ -55,68 +56,44 @@ add_library(newmat STATIC
     src/newmat-10/newmat9.cpp
 )
 
-add_executable(warp-sabre
-    src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ReadDelimitedFile.cpp
-    src/ProgramOptions.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/TransformPoly.cpp
-    src/WarpOs.cpp
-    src/WriteKml.cpp
+add_library( warp-conversion STATIC
     src/ganzc/LatLong-OSGBconversion.cpp
     src/gbos1936/Gbos1936.cpp
 )
 
-add_executable(gentiles
+add_library( warp STATIC
+    src/CalibrationFile.cpp
     src/CopyPixels.cpp
-    src/GenTiles.cpp
     src/GetBounds.cpp
     src/ImageWarpByFunc.cpp
     src/ImgMagick.cpp
+    src/ReadDelimitedFile.cpp
     src/ProgramOptions.cpp
     src/ReadDelimitedFile.cpp
     src/ReadKmlFile.cpp
+    src/SlippyMapTile.cpp
     src/SourceKml.cpp
     src/StringUtils.cpp
     src/Tile.cpp
-    src/gbos1936/Gbos1936.cpp
+    src/TileJob.cpp
+    src/TransformPoly.cpp
+    src/WriteKml.cpp
+)
+
+add_executable(warp-sabre
+    src/WarpOs.cpp
+)
+
+add_executable(gentiles
+    src/GenTiles.cpp
 )
 
 add_executable(cleartiles
     src/ClearTiles.cpp
-    src/CopyPixels.cpp
-    src/GetBounds.cpp
-    src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ProgramOptions.cpp
-    src/ReadDelimitedFile.cpp
-    src/ReadKmlFile.cpp
-    src/SourceKml.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/gbos1936/Gbos1936.cpp
-)
-
-add_executable(clearbounds
-    src/ClearBounds.cpp
-    src/CopyPixels.cpp
-    src/GetBounds.cpp
-    src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ProgramOptions.cpp
-    src/ReadDelimitedFile.cpp
-    src/ReadKmlFile.cpp
-    src/SourceKml.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/gbos1936/Gbos1936.cpp
 )
 
 add_executable(testcas
     src/TestCas.cpp
-    src/gbos1936/Gbos1936.cpp
 )
 
 target_include_directories(warp-sabre PUBLIC
@@ -129,6 +106,8 @@ target_link_libraries(warp-sabre
     PRIVATE Boost::system
     PRIVATE morph
     PRIVATE newmat
+    PRIVATE warp-conversion
+    PRIVATE warp
 )
 
 target_include_directories(gentiles PUBLIC
@@ -141,6 +120,8 @@ target_link_libraries(gentiles
     PRIVATE Boost::thread
     PRIVATE Boost::system
     PRIVATE morph
+    PRIVATE warp-conversion
+    PRIVATE warp
 )
 
 target_include_directories(cleartiles PUBLIC
@@ -153,16 +134,10 @@ target_link_libraries(cleartiles
     PRIVATE Boost::thread
     PRIVATE Boost::system
     PRIVATE morph
+    PRIVATE warp-conversion
+    PRIVATE warp
 )
 
-target_include_directories(clearbounds PUBLIC
-    ${PROJECT_SOURCE_DIR}/libmorph
-)
-
-target_link_libraries(clearbounds
-    PRIVATE ImageMagick::MagickWand
-    PRIVATE xml2
-    PRIVATE Boost::thread
-    PRIVATE Boost::system
-    PRIVATE morph
+target_link_libraries(testcas
+    PRIVATE warp-conversion
 )
