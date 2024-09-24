@@ -11,7 +11,6 @@
 #include <boost/thread/thread_time.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-boost::mutex statusLock;
 boost::mutex accessTimeLock;
 
 using namespace std;

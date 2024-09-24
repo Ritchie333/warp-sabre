@@ -79,6 +79,7 @@ private:
     class Tile sourceBBox;
 	int sourceBBoxSet = 0;
     class SourceKml* src;
+    boost::mutex statusLock;
     boost::interprocess::interprocess_semaphore semaphore;
 };
 
