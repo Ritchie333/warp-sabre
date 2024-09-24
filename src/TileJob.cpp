@@ -719,8 +719,8 @@ void TileRunner::RunTileJobs()
 
 void TileRunner::EndThread( boost::thread::id threadId )
 {
-	boost::thread* thread = threads[ threadId ];
 	statusLock.lock();
+	boost::thread* thread = threads[ threadId ];
 	threads.erase( threadId );
 	statusLock.unlock();
 	delete thread;
