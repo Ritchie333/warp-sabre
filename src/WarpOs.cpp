@@ -31,15 +31,13 @@ PolyProjectArgs::ProjType GetProjType( const string& input )
 		NULL
 	};
 
-	for( int i = 0; ; i++ ) {
-		if( !names[i] ) {
-			// entry not found
-			return PolyProjectArgs::OSGB;
-		}
+	for( int i = 0; names[i] ; i++ ) {
 		if( input == names[i] ) {
 			return ( PolyProjectArgs::ProjType) i;
 		}
 	}
+	// entry not found
+	return PolyProjectArgs::OSGB;
 }
 
 //**************************************************
