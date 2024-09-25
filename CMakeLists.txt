@@ -69,6 +69,7 @@ add_executable(warp-sabre
     src/StringUtils.cpp
     src/Tile.cpp
     src/TransformPoly.cpp
+    src/Warp.cpp
     src/WarpOs.cpp
     src/WriteKml.cpp
 )
