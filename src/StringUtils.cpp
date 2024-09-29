@@ -172,10 +172,10 @@ string GetFileExtension(string filename)
 	return out;
 }
 
-string RemoveFileExtension(string filename)
+string RemoveFileExtension(const string& filename)
 {
 	// Determine length of extension
-	int len = strlen(filename.c_str());
+	int len = filename.size();
 	int extensionOffset = -1;
 	for (int i = len; i >= 0; i--)
 	{

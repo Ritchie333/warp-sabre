@@ -2,6 +2,7 @@
 #define CALIBRATION_FILE_H
 
 #include "ReadDelimitedFile.h"
+#include "Log.h"
 
 class CalibrationFile : public DelimitedFile
 {   
@@ -13,6 +14,7 @@ public:
     bool gbosOut = false;
     bool mercatorOut = false;
     vector<string> corners;
+    Log* logger;
 
     CalibrationFile();
 	CalibrationFile(const class CalibrationFile &a);

@@ -14,37 +14,15 @@ using namespace std;
 #include <math.h>
 #include "StringUtils.h"
 #include "Warp.h"
-
-PolyProjectArgs::ProjType GetProjType( const string& input )
-{
-	const char* names[] = {
-		"osgb",
-		"mercator",
-		"cassini",
-		"bonnes",
-		"bonnei",
-		"bonnef",
-		"osi",
-		"wo",
-		"woi",
-		"osgby",
-		NULL
-	};
-
-	for( int i = 0; names[i] ; i++ ) {
-		if( input == names[i] ) {
-			return ( PolyProjectArgs::ProjType) i;
-		}
-	}
-	// entry not found
-	return PolyProjectArgs::OSGB;
-}
+#include "Log.h"
 
 //**************************************************
 
 int main(int argc, char *argv[])
 {
 	class Warp warp;
+	class Log logger;
+	warp.logger = &logger;
 	string outproj = "mercator";
 	string inproj = "gbos";
 
@@ -117,7 +95,7 @@ int main(int argc, char *argv[])
 	}
 	if (po.HasArg("inproj"))
 	{
-		warp.projType = GetProjType ( po.GetArg("inproj") );
+		warp.ProjTypeFromName( po.GetArg("inproj") );
 	}
 
 	if (warp.inputImageFilename.length() == 0)

@@ -17,7 +17,7 @@ string RemoveWhitespace(string str);
 string FilenameRemoveFrameNumAndExtension(string filename);
 string FilenameChangeNumber(string filename, int num);
 string GetFileExtension(string filename);
-string RemoveFileExtension(const char *filename);
+string RemoveFileExtension(const string& filename);
 string RemoveFilePath(const char *filename);
 string GetFilePath(const char *filename);
 int GetFileAsString(const char *filename, string &dataOut);

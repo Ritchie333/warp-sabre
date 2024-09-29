@@ -2,6 +2,7 @@
 #define _WARP_H
 
 #include "TransformPoly.h"
+#include "Log.h"
 
 #include <string>
 using namespace std;
@@ -25,8 +26,12 @@ public:
     bool forceAspectCoord;
     int outputWidth;
     int outputHeight;
+    Log* logger;
 
     int Run();
+    void ProjTypeFromName( const string& input);
+
+    const static char* ProjectionNames[];
 };
 
 #endif

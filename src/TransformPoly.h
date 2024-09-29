@@ -4,6 +4,7 @@
 
 #include "Tile.h"
 #include "Point.h"
+#include "Log.h"
 
 #include <string>
 #include <vector>
@@ -27,7 +28,7 @@ public:
 	void AddPoint(const Point& original, const Point& transformed);
 	void AddPoint(double ox, double oy, double tx, double ty);
 	void AddPoint(double ox, double oy, const Point& transformed);
-	vector<double> Estimate();
+	vector<double> Estimate( Log* logger);
 
 	vector<Point> originalPoints, transformedPoints;
 	int order;

@@ -1,6 +1,8 @@
 #include "gbos1936/Gbos1936.h"
 #include "ganzc/LatLong-OSGBconversion.h" 
 #include "CalibrationFile.h"
+#include <sstream>
+using namespace std;
 
 CalibrationFile::CalibrationFile()
 {
@@ -52,7 +54,7 @@ void CalibrationFile::ReadProjection()
 
 				if (projType != PolyProjectArgs::Mercator)
 				{
-					cout << "Cannot take lat lon input when using OS as input projection" << endl;
+					logger->Add( "Cannot take lat lon input when using OS as input projection" );
 					exit(0);
 				}
 				else
@@ -81,7 +83,7 @@ void CalibrationFile::ReadProjection()
 
 				if (projType != PolyProjectArgs::Mercator)
 				{
-					cout << "Cannot take lat lon input when using OS as input projection" << endl;
+					logger->Add( "Cannot take lat lon input when using OS as input projection" );
 					exit(0);
 				}
 				else
@@ -232,7 +234,9 @@ void CalibrationFile::ReadProjection()
 			if (lat != -1.0 && lon != -1.0)
 			{
 
-				cout << "conv " << dEasting << "," << dNorthing << "->" << lat << "," << lon << endl;
+				stringstream output;
+				output << "conv " << dEasting << "," << dNorthing << "->" << lat << "," << lon;
+				logger->Add( output.str() );
 
 				// Add point to transform constraints
 				if (projType != PolyProjectArgs::Mercator)
@@ -286,7 +290,9 @@ void CalibrationFile::ReadProjection()
 			if (lat != -1.0 && lon != -1.0)
 			{
 
-				cout << "conv " << zone << ":" << dEasting << "," << dNorthing << "->" << lat << "," << lon << endl;
+				stringstream output;
+				output << "conv " << zone << ":" << dEasting << "," << dNorthing << "->" << lat << "," << lon;
+				logger->Add( output.str() );
 
 				// Add point to transform constraints
 				if (projType != PolyProjectArgs::Mercator)
@@ -326,7 +332,9 @@ void CalibrationFile::ReadProjection()
 
     if (corners.size() == 0)
 	{
-		cout << "Approx bounding box N " << north << ", S " << south << ", E " << east << ", W " << west << endl;
+		stringstream output;
+		output << "Approx bounding box N " << north << ", S " << south << ", E " << east << ", W " << west;
+		logger->Add( output.str() );
 	}
 	else
 	{
@@ -366,6 +374,8 @@ void CalibrationFile::ReadProjection()
 			}
 			setBox = 1;
 		}
-		cout << "Manually set boundary " << north << "," << south << "," << east << "," << west << endl;
+		stringstream output;
+		output << "Manually set boundary " << north << "," << south << "," << east << "," << west;
+		logger->Add( output.str() );
 	}
 }
