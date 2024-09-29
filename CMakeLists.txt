@@ -3,10 +3,12 @@ project(warp-sabre LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_BUILD_TYPE Debug)
 
 find_package(ImageMagick REQUIRED COMPONENTS MagickWand)
 include_directories(${ImageMagick_INCLUDE_DIRS})
 add_compile_options(${ImageMagick_COMPILE_OPTIONS})
+find_package(wxWidgets REQUIRED COMPONENTS core base)
 add_compile_options(-DUSE_MT_GENTILES)
 add_compile_options(-Wall)
 
@@ -14,6 +16,7 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(LibXml2 REQUIRED)
 
 include_directories(${LIBXML2_INCLUDE_DIR})
+include(${wxWidgets_USE_FILE})
 
 add_library(morph STATIC
     src/libmorph/my_malloc.c
@@ -60,57 +63,49 @@ add_library(warp-conversion STATIC
     src/gbos1936/Gbos1936.cpp
 )
 
-add_executable(warp-sabre
+add_library(warp STATIC
     src/CalibrationFile.cpp
+    src/CopyPixels.cpp
+    src/GetBounds.cpp
     src/ImageWarpByFunc.cpp
     src/ImgMagick.cpp
+    src/Log.cpp
     src/ReadDelimitedFile.cpp
     src/ProgramOptions.cpp
+    src/ReadKmlFile.cpp
+    src/SlippyMapTile.cpp
+    src/SourceKml.cpp
     src/StringUtils.cpp
     src/Tile.cpp
+    src/TileJob.cpp
     src/TransformPoly.cpp
     src/Warp.cpp
-    src/WarpOs.cpp
     src/WriteKml.cpp
 )
 
+add_executable(warp-sabre
+    src/WarpOs.cpp
+)
+
 add_executable(gentiles
-    src/CopyPixels.cpp
     src/GenTiles.cpp
-    src/GetBounds.cpp
-    src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ProgramOptions.cpp
-    src/ReadDelimitedFile.cpp
-    src/ReadKmlFile.cpp
-    src/SlippyMapTile.cpp
-    src/SourceKml.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/TileJob.cpp
 )
 
 add_executable(cleartiles
-    src/CopyPixels.cpp
     src/ClearTiles.cpp
-    src/GetBounds.cpp
-    src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ProgramOptions.cpp
-    src/ReadDelimitedFile.cpp
-    src/ReadKmlFile.cpp
-    src/SlippyMapTile.cpp
-    src/SourceKml.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/TileJob.cpp
 )
 
 add_executable(testcas
     src/TestCas.cpp
 )
 
-target_include_directories(warp-sabre PUBLIC
+add_executable(warp-sabre-gui
+    src/gui/WarpDlg.cpp
+    src/gui/WarpGui.cpp
+    src/gui/WarpProgressDlg.cpp
+)
+
+target_include_directories(warp PUBLIC
     ${PROJECT_SOURCE_DIR}/libmorph
     ${PROJECT_SOURCE_DIR}/newmat-10
 )
@@ -121,6 +116,17 @@ target_link_libraries(warp-sabre
     PRIVATE morph
     PRIVATE newmat
     PRIVATE warp-conversion
+    PRIVATE warp
+)
+
+target_link_libraries(warp-sabre-gui
+    PRIVATE ImageMagick::MagickWand
+    PRIVATE Boost::system
+    PRIVATE morph
+    PRIVATE newmat
+    PRIVATE warp-conversion
+    PRIVATE warp
+    PRIVATE ${wxWidgets_LIBRARIES}
 )
 
 target_include_directories(gentiles PUBLIC
@@ -134,6 +140,7 @@ target_link_libraries(gentiles
     PRIVATE Boost::system
     PRIVATE morph
     PRIVATE warp-conversion
+    PRIVATE warp
 )
 
 target_include_directories(cleartiles PUBLIC
@@ -147,6 +154,7 @@ target_link_libraries(cleartiles
     PRIVATE Boost::system
     PRIVATE morph
     PRIVATE warp-conversion
+    PRIVATE warp
 )
 
 target_link_libraries(testcas
