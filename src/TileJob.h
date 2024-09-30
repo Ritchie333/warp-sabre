@@ -10,6 +10,7 @@ using namespace std;
 #include "Tile.h"
 #include "SourceKml.h"
 #include "ReadDelimitedFile.h"
+#include "Log.h"
 
 static const int DEFAULT_MAX_TILES = 25;
 
@@ -43,7 +44,6 @@ public:
 	void operator()();
 
     static void Start( vector<TileJob>& jobs, const int maxTilesLoaded );
-    static int RequestTileLoading(class SourceKml*src, const size_t size, class SourceKml &toLoad, int maxTilesLoaded);
     static const int TargetThreads();
 
 private:
@@ -65,13 +65,16 @@ public:
     unsigned int maxZoom;
     unsigned int maxTilesLoaded;
     bool mergeTiles;
+    class Log* logger;
     
-    void Init();
+    int Init();
     void SetupTileJobs();
     void RunTileJobs();
     void Clear();
     void EndThread( boost::thread::id threadId );
+    const int CountJobs() const;
     const int CountFailures() const;
+    int RequestTileLoading(class SourceKml*src, const size_t size, class SourceKml &toLoad, int maxTilesLoaded);
 private:
     vector<TileJob> jobs;
     map<boost::thread::id, boost::thread*> threads;

@@ -11,6 +11,7 @@ public:
     virtual ~Log();
 
     virtual void Add( const string& value );
+    virtual void Progress( const int position );
 
 };
 

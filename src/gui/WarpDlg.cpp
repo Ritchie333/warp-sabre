@@ -5,12 +5,12 @@
 
 using namespace std;
 
-BEGIN_EVENT_TABLE(WarpDlg, wxDialog)
+BEGIN_EVENT_TABLE(WarpDlg, BaseDlg)
     EVT_BUTTON(wxID_ANY, WarpDlg::OnButton)
 END_EVENT_TABLE()
 
 WarpDlg::WarpDlg() :
-    wxDialog( nullptr, wxID_ANY, _( "warp-sabre") ),
+    BaseDlg( _( "warp-sabre") ),
     _progressDialog( this, ID_Warp_Dlg, _warp )
 {
     wxBoxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
@@ -28,7 +28,9 @@ WarpDlg::WarpDlg() :
     AddLine( topSizer, _projectionType, _( "Projection type" ) );
     AddLine( topSizer, _polynomialOrder, _( "Polynomial order" ) );
 
-    AddButtons( topSizer );
+    AddButtons( topSizer, new wxButton( this, ID_Warp, _( "Warp" ) ), 
+        new wxButton( this, wxID_CLOSE, ("Close" ) ),
+        nullptr );
 
     SetSizerAndFit( topSizer );
 }
@@ -36,22 +38,6 @@ WarpDlg::WarpDlg() :
 WarpDlg::~WarpDlg()
 {
 
-}
-
-void WarpDlg::AddLine( wxBoxSizer *topSizer, wxControl* control, const wxString& name )
-{
-    wxBoxSizer *sideSizer = new wxBoxSizer( wxHORIZONTAL );
-    sideSizer->Add( new wxStaticText( this, wxID_ANY, name ) );
-    sideSizer->Add( control );
-    topSizer->Add( sideSizer );
-}
-
-void WarpDlg::AddButtons( wxBoxSizer *topSizer )
-{
-    wxBoxSizer *sideSizer = new wxBoxSizer( wxHORIZONTAL );
-    sideSizer->Add( new wxButton( this, ID_Warp, _( "Warp" )));
-    sideSizer->Add( new wxButton( this, wxID_CLOSE, _( "Close" )));
-    topSizer->Add( sideSizer );
 }
 
 wxChoice* WarpDlg::PopulateProjectionType()

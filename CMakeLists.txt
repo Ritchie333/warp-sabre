@@ -100,9 +100,16 @@ add_executable(testcas
 )
 
 add_executable(warp-sabre-gui
+    src/gui/BaseDlg.cpp
     src/gui/WarpDlg.cpp
     src/gui/WarpGui.cpp
     src/gui/WarpProgressDlg.cpp
+)
+
+add_executable(gentiles-gui
+    src/gui/BaseDlg.cpp
+    src/gui/GentilesDlg.cpp
+    src/gui/GentilesGui.cpp
 )
 
 target_include_directories(warp PUBLIC
@@ -141,6 +148,17 @@ target_link_libraries(gentiles
     PRIVATE morph
     PRIVATE warp-conversion
     PRIVATE warp
+)
+
+target_link_libraries(gentiles-gui
+    PRIVATE ImageMagick::MagickWand
+    PRIVATE xml2
+    PRIVATE Boost::thread
+    PRIVATE Boost::system
+    PRIVATE morph
+    PRIVATE warp-conversion
+    PRIVATE warp
+    PRIVATE ${wxWidgets_LIBRARIES}
 )
 
 target_include_directories(cleartiles PUBLIC

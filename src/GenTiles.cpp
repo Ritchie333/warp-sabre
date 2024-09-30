@@ -131,6 +131,8 @@ int main(int argc, char **argv)
 	tileRun.outFolder = outFolder;
 	tileRun.maxTilesLoaded = maxTilesLoaded;
 	tileRun.mergeTiles = mergeTiles;
+	class Log logger;
+	tileRun.logger = &logger;
 
 	tileRun.Init();
 	tileRun.SetupTileJobs();

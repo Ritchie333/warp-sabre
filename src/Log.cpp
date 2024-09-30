@@ -16,3 +16,8 @@ void Log::Add( const string& value )
 {
     cout << value << endl;
 }
+
+void Log::Progress( const int /*position*/ )
+{
+
+}

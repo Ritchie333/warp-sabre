@@ -8,6 +8,7 @@
 #include <wx/sizer.h>
 #include "../Warp.h"
 #include "WarpProgressDlg.h"
+#include "BaseDlg.h"
 
 enum
 {
@@ -20,7 +21,7 @@ enum
     ID_Warp_Dlg
 };
 
-class WarpDlg : public wxDialog
+class WarpDlg : public BaseDlg
 {
 public:
     WarpDlg();
@@ -35,8 +36,6 @@ private:
     Warp _warp;
     WarpProgressDialog _progressDialog;
 
-    void AddLine( wxBoxSizer *topSizer, wxControl* control, const wxString& name );
-    void AddButtons( wxBoxSizer *topSizer );
     wxChoice* PopulateProjectionType();
 
     void OnButton( wxCommandEvent& event );

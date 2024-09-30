@@ -1,0 +1,78 @@
+#ifndef _GENTILES_DLG_H
+#define _GENTILES_DLG_H
+
+#include <wx/wx.h>
+#include <wx/stattext.h>
+#include <wx/filepicker.h>
+#include <wx/gauge.h>
+
+#include "BaseDlg.h"
+#include "../TileJob.h"
+
+const int wxEVT_GENTILES_LOG = 6147;
+const int wxEVT_GENTILES_END = 6148;
+const int wxEVT_GENTILES_PROGRESS = 6149;
+const int wxEVT_GENTILES_LENGTH = 6150;
+
+enum
+{
+    ID_InputFiles,
+    ID_InputFilesBrowse,
+    ID_BoundsFile,
+    ID_OutputFolder,
+    ID_MinZoom,
+    ID_MaxZoom,
+    ID_Output,
+    ID_Progress,
+    ID_Start,
+    ID_Clear
+};
+
+class GentilesThread : public wxThread, public Log
+{
+private:
+    TileRunner& _runner;
+protected:
+    wxEvtHandler* _parent;
+public:
+    GentilesThread(wxEvtHandler* parent, TileRunner& runner );
+    int source;
+    virtual ~GentilesThread();
+    wxThread::ExitCode Entry();
+
+    virtual void Add( const string& value );
+    virtual void Progress( const int position );
+};
+
+class GentilesDlg : public BaseDlg
+{
+public:
+    GentilesDlg();
+    virtual ~GentilesDlg();
+
+private:
+    wxTextCtrl* _inputFiles;
+    wxFilePickerCtrl* _boundsFile;
+    wxDirPickerCtrl* _outputFolder;
+    wxTextCtrl* _minZoom;
+    wxTextCtrl* _maxZoom;
+    wxStaticText* _output;
+    wxGauge* _progressBar;
+    wxButton* _startButton;
+    wxButton* _clearButton;
+    wxButton* _closeButton;
+
+    TileRunner _runner;
+    GentilesThread* _thread;
+
+    void OnButton( wxCommandEvent& event );
+    void OnLog( wxCommandEvent& event );
+    void OnTilesEnd( wxCommandEvent& event );
+    void OnProgress( wxCommandEvent& event );
+    void OnLength( wxCommandEvent& event );
+    
+    DECLARE_EVENT_TABLE()
+
+};
+
+#endif // _GENTILES_DLG_H
