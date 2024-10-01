@@ -6,6 +6,12 @@ BaseDlg::BaseDlg( const wxString& name ) :
 
 }
 
+BaseDlg::BaseDlg( const wxString& name, const wxPoint& position, const wxSize& size ) :
+    wxDialog( nullptr, wxID_ANY, name, position, size )
+{
+
+}
+
 BaseDlg::~BaseDlg()
 {
 
@@ -19,19 +25,19 @@ void BaseDlg::AddLine( wxBoxSizer *topSizer, wxControl* control, const wxString&
     topSizer->Add( sideSizer );
 }
 
-void BaseDlg::AddButtons( wxBoxSizer *topSizer, ... )
+void BaseDlg::AddGroup( wxBoxSizer *topSizer, ... )
 {
     va_list ap;
 
     wxBoxSizer *sideSizer = new wxBoxSizer( wxHORIZONTAL );
     va_start( ap, topSizer );
-    wxButton* button = nullptr;
+    wxControl* next = nullptr;
     do {
-        button = va_arg( ap, wxButton* );
-        if( button ) {
-            sideSizer->Add( button );
+        next = va_arg( ap, wxControl* );
+        if( next ) {
+            sideSizer->Add( next );
         }
-    } while( button );
+    } while( next );
     va_end( ap );
     topSizer->Add( sideSizer );
 }

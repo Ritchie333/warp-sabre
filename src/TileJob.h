@@ -72,12 +72,14 @@ public:
     void RunTileJobs();
     void Clear();
     void EndThread( boost::thread::id threadId );
+    void Abort();
     const int CountJobs() const;
     const int CountFailures() const;
     int RequestTileLoading(class SourceKml*src, const size_t size, class SourceKml &toLoad, int maxTilesLoaded);
 private:
     vector<TileJob> jobs;
     map<boost::thread::id, boost::thread*> threads;
+    bool running;
     DelimitedFile boundsFile;
     class Tile sourceBBox;
 	int sourceBBoxSet = 0;

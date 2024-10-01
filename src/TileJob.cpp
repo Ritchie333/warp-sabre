@@ -384,7 +384,9 @@ const int TileJob::TargetThreads()
 
 
 TileRunner::TileRunner( const int numThreads ) :
+	running( false ),
 	semaphore( numThreads )
+	
 {
 	src = NULL;
 }
@@ -650,7 +652,7 @@ void TileRunner::SetupTileJobs()
 
 void TileRunner::RunTileJobs()
 {
-    int running = 1;
+    running = true;
 	int renderCount = 0;
 	while (running)
 	{
@@ -724,7 +726,7 @@ void TileRunner::RunTileJobs()
 		if (countRemaining == 0)
 		{
 			logger->Add( "All done!" );
-			running = 0;
+			running = false;
 			continue;
 		}
 
@@ -740,8 +742,10 @@ void TileRunner::RunTileJobs()
 			{
 				class SourceKml &toLoad = src[maxDep[t]];
 				int status = RequestTileLoading(src, inputFiles.size(), toLoad, maxTilesLoaded);
-				if (status == 0)
-					exit(0);
+				if (status == 0) {
+					running = false;
+					continue;
+				}
 			}
 		}
 
@@ -752,38 +756,41 @@ void TileRunner::RunTileJobs()
 		for (unsigned int jobNum = 0; jobNum < jobsInDep.size(); jobNum++)
 		{
 
-			class TileJob &job = *jobsInDep[jobNum];
-			logger->Progress( ++renderCount );
-			{
-				stringstream output;
-				output << "Render Tile " << renderCount << " of " << jobs.size() << " (in dep " << jobNum << " of " << jobsInDep.size() << ")";
-				logger->Add( output.str() );
-			}
-			{
-				stringstream output;
-				output << "Depends on KML srcs ";
-				for (unsigned int j = 0; j < job.kmlSrc.size(); j++) {
-					output << job.kmlSrc[j] << " ";
+			if( running ) {
+
+				class TileJob &job = *jobsInDep[jobNum];
+				logger->Progress( ++renderCount );
+				{
+					stringstream output;
+					output << "Render Tile " << renderCount << " of " << jobs.size() << " (in dep " << jobNum << " of " << jobsInDep.size() << ")";
+					logger->Add( output.str() );
 				}
-				logger->Add( output.str() );
-			}
+				{
+					stringstream output;
+					output << "Depends on KML srcs ";
+					for (unsigned int j = 0; j < job.kmlSrc.size(); j++) {
+						output << job.kmlSrc[j] << " ";
+					}
+					logger->Add( output.str() );
+				}
 
-			if (tilesLoadable) // Do processing in parallel
-			{
-				job.enableTileLoading = 0;
-				job.verbose = 1;
+				if (tilesLoadable) // Do processing in parallel
+				{
+					job.enableTileLoading = 0;
+					job.verbose = 1;
 
-				semaphore.wait();
-				statusLock.lock();
-				boost::thread* newThread = new boost::thread(job);
-				threads[ newThread->get_id() ] = newThread;
-				statusLock.unlock();
-			}
-			else // Do processing in serial
-			{
-				job.enableTileLoading = 1;
-				job();
-				job.enableTileLoading = 0;
+					semaphore.wait();
+					statusLock.lock();
+					boost::thread* newThread = new boost::thread(job);
+					threads[ newThread->get_id() ] = newThread;
+					statusLock.unlock();
+				}
+				else // Do processing in serial
+				{
+					job.enableTileLoading = 1;
+					job();
+					job.enableTileLoading = 0;
+				}
 			}
 
 		} // End of job loop
@@ -797,6 +804,11 @@ void TileRunner::RunTileJobs()
 
 	} // End of dep depth loop
 
+}
+
+void TileRunner::Abort()
+{
+	running = false;
 }
 
 void TileRunner::EndThread( boost::thread::id threadId )

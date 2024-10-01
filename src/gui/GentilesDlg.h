@@ -9,6 +9,9 @@
 #include "BaseDlg.h"
 #include "../TileJob.h"
 
+#include <vector>
+using namespace std;
+
 const int wxEVT_GENTILES_LOG = 6147;
 const int wxEVT_GENTILES_END = 6148;
 const int wxEVT_GENTILES_PROGRESS = 6149;
@@ -24,6 +27,7 @@ enum
     ID_MaxZoom,
     ID_Output,
     ID_Progress,
+    ID_Percentage,
     ID_Start,
     ID_Clear
 };
@@ -56,7 +60,8 @@ private:
     wxDirPickerCtrl* _outputFolder;
     wxTextCtrl* _minZoom;
     wxTextCtrl* _maxZoom;
-    wxStaticText* _output;
+    vector<wxStaticText*> _output;
+    wxStaticText* _percentage;
     wxGauge* _progressBar;
     wxButton* _startButton;
     wxButton* _clearButton;
@@ -64,6 +69,9 @@ private:
 
     TileRunner _runner;
     GentilesThread* _thread;
+
+    int _current;
+    int _length;
 
     void OnButton( wxCommandEvent& event );
     void OnLog( wxCommandEvent& event );

@@ -28,7 +28,7 @@ WarpDlg::WarpDlg() :
     AddLine( topSizer, _projectionType, _( "Projection type" ) );
     AddLine( topSizer, _polynomialOrder, _( "Polynomial order" ) );
 
-    AddButtons( topSizer, new wxButton( this, ID_Warp, _( "Warp" ) ), 
+    AddGroup( topSizer, new wxButton( this, ID_Warp, _( "Warp" ) ), 
         new wxButton( this, wxID_CLOSE, ("Close" ) ),
         nullptr );
 

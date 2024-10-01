@@ -1,4 +1,5 @@
 #include "GentilesDlg.h"
+#include <sstream>
 
 BEGIN_EVENT_TABLE(GentilesDlg, BaseDlg)
     EVT_BUTTON(wxID_ANY, GentilesDlg::OnButton)
@@ -8,10 +9,14 @@ BEGIN_EVENT_TABLE(GentilesDlg, BaseDlg)
     EVT_COMMAND(wxID_ANY, wxEVT_GENTILES_LENGTH, GentilesDlg::OnLength )
 END_EVENT_TABLE()
 
+const int OUTPUT_LINES = 2; // Display this many most recent lines in the output
+
 GentilesDlg::GentilesDlg() :
-    BaseDlg( _( "gentiles") ),
+    BaseDlg( _( "gentiles" ), wxDefaultPosition, wxSize( 400, -1 ) ),
     _runner( TileJob::TargetThreads() ),
-    _thread( nullptr)
+    _thread( nullptr ),
+    _current( 0 ),
+    _length( 0 )
 {
     wxBoxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
 
@@ -32,16 +37,20 @@ GentilesDlg::GentilesDlg() :
     AddLine( topSizer, _minZoom, _( "Minimum zoom" ) );
     AddLine( topSizer, _maxZoom, _( "Maximum zoom" ) );
 
-    _output = new wxStaticText( this, wxID_ANY, wxEmptyString );
-    topSizer->Add( _output, wxEXPAND );
+    for( int i = 0; i < OUTPUT_LINES; i++ ) {
+        wxStaticText* next = new wxStaticText( this, wxID_ANY, wxEmptyString ); 
+        _output.push_back( next );
+        topSizer->Add( next, wxEXPAND );
+    }
 
-    _progressBar = new wxGauge( this, ID_MinZoom, 100 );
-    topSizer->Add( _progressBar );
+    _progressBar = new wxGauge( this, ID_MinZoom, 100, wxDefaultPosition, wxSize( 200, -1 ) );
+    _percentage = new wxStaticText( this, ID_Percentage, wxEmptyString );
+    AddGroup( topSizer, _progressBar, _percentage, nullptr );
 
     _startButton = new wxButton( this, ID_Start, _( "Start" ) );
     _clearButton = new wxButton( this, ID_Clear, _( "Clear" ) );
     _closeButton = new wxButton( this, wxID_CLOSE, ("Close" ) );
-    AddButtons( topSizer, _startButton, _clearButton, _closeButton, nullptr );
+    AddGroup( topSizer, _startButton, _clearButton, _closeButton, nullptr );
 
     SetSizerAndFit( topSizer );
 }
@@ -55,6 +64,10 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
     const int id = event.GetId();
     switch( id ) {
         case wxID_CLOSE :
+            if( _thread ) {
+                _runner.Abort();;
+                _thread->Wait();
+            }
             Destroy();
             break;
         case ID_Start :
@@ -96,26 +109,40 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
 
 void GentilesDlg::OnLog( wxCommandEvent& event )
 {
-    _output->SetLabel( event.GetString() );
+    if( _output.size() > 0 ) {
+        for( int i = 1; i < _output.size(); i++ ) {
+            _output[ i - 1 ]->SetLabel( _output[ i ]->GetLabel() );
+        }
+        _output[ _output.size() - 1 ]->SetLabel( event.GetString() );
+    }
 }
  
 void GentilesDlg::OnTilesEnd( wxCommandEvent& /*event*/ )
 {
+    _thread = nullptr;
     _startButton->Enable();
     _clearButton->Enable();
 }
 
 void GentilesDlg::OnProgress( wxCommandEvent& event )
 {
-    _progressBar->SetValue( event.GetInt() );
+    _current = event.GetInt();
+    if( _length > 0 ) {
+        double percentage = ( (double) _current / ( double )_length ) * 100.0;        
+        _percentage->SetLabel( wxString::Format( _("%.2f"), percentage ) + _("%"));
+
+    }
+    _progressBar->SetValue( _current );
 }
 
 void GentilesDlg::OnLength( wxCommandEvent& event )
 {
-    _progressBar->SetValue( event.GetInt() );
+    _length = event.GetInt();
+    _progressBar->SetRange( _length );
 }
 
 GentilesThread::GentilesThread(wxEvtHandler* parent, TileRunner& runner ) :
+    wxThread( wxTHREAD_JOINABLE ),
     _runner( runner ),
     _parent( parent )
 {
