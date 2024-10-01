@@ -2,6 +2,9 @@
 #include <wx/choice.h>
 #include <wx/dialog.h>
 
+const int LABEL_WIDTH = 200;
+const int TEXT_WIDTH = 500;
+
 class BaseDlg : public wxDialog
 {
 protected:

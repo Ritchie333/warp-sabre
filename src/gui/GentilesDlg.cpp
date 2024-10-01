@@ -20,17 +20,22 @@ GentilesDlg::GentilesDlg() :
 {
     wxBoxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
 
+    wxSize textSize( TEXT_WIDTH, -1 );
+
     wxBoxSizer *inputSizer = new wxBoxSizer( wxHORIZONTAL );
-    inputSizer->Add( new wxStaticText( this, wxID_ANY, ( "Input files" ) ) );
-    _inputFiles = new wxTextCtrl( this, ID_InputFiles, wxEmptyString, wxDefaultPosition, wxSize( 100, 100 ), wxTE_MULTILINE );
+    wxButton *inputBrowse = new wxButton( this, ID_InputFilesBrowse, _( "Browse" ) );
+    const int inputBrowseWidth = inputBrowse->GetSize().GetWidth();
+    inputSizer->Add( new wxStaticText( this, wxID_ANY, ( "Input files" ), wxDefaultPosition,
+        wxSize( LABEL_WIDTH - inputBrowseWidth, -1 ) ) );
+    _inputFiles = new wxTextCtrl( this, ID_InputFiles, wxEmptyString, wxDefaultPosition, textSize, wxTE_MULTILINE );
     inputSizer->Add( _inputFiles );
-    inputSizer->Add( new wxButton( this, ID_InputFilesBrowse, _( "Browse" ) ) );
+    inputSizer->Add( inputBrowse );
     topSizer->Add( inputSizer );
 
-    _boundsFile = new wxFilePickerCtrl( this, ID_BoundsFile );
-    _outputFolder = new wxDirPickerCtrl( this, ID_OutputFolder );
-    _minZoom = new wxTextCtrl( this, ID_MinZoom );
-    _maxZoom = new wxTextCtrl( this, ID_MaxZoom );
+    _boundsFile = new wxFilePickerCtrl( this, ID_BoundsFile, wxEmptyString, _( "Select bounds file"), _("*.csv"), wxDefaultPosition, textSize );
+    _outputFolder = new wxDirPickerCtrl( this, ID_OutputFolder, wxEmptyString, wxDirSelectorPromptStr, wxDefaultPosition, textSize );
+    _minZoom = new wxTextCtrl( this, ID_MinZoom, _( "3" ), wxDefaultPosition, textSize );
+    _maxZoom = new wxTextCtrl( this, ID_MaxZoom, _( "12" ), wxDefaultPosition, textSize );
 
     AddLine( topSizer, _boundsFile, _( "Bounds file" ) );
     AddLine( topSizer, _outputFolder, _( "Output folder" ) );
@@ -43,7 +48,7 @@ GentilesDlg::GentilesDlg() :
         topSizer->Add( next, wxEXPAND );
     }
 
-    _progressBar = new wxGauge( this, ID_MinZoom, 100, wxDefaultPosition, wxSize( 200, -1 ) );
+    _progressBar = new wxGauge( this, ID_MinZoom, 100, wxDefaultPosition, wxSize( TEXT_WIDTH + LABEL_WIDTH, -1 ) );
     _percentage = new wxStaticText( this, ID_Percentage, wxEmptyString );
     AddGroup( topSizer, _progressBar, _percentage, nullptr );
 

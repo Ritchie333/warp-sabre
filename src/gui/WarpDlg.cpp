@@ -15,10 +15,12 @@ WarpDlg::WarpDlg() :
 {
     wxBoxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
 
-    _inputFile = new wxFilePickerCtrl( this, ID_InputFile );
-    _pointsFile = new wxFilePickerCtrl( this, ID_PointsFile );
+    wxSize textSize( TEXT_WIDTH, -1 );
+
+    _inputFile = new wxFilePickerCtrl( this, ID_InputFile, wxEmptyString, _( "Select input file"), _("*.jpg"), wxDefaultPosition, textSize );
+    _pointsFile = new wxFilePickerCtrl( this, ID_PointsFile, wxEmptyString, _( "Select points file"), _("*.csv"), wxDefaultPosition, textSize );
     _outputName = new wxFilePickerCtrl( this, ID_OutputName, wxEmptyString, wxFileSelectorPromptStr, wxFileSelectorDefaultWildcardStr, 
-            wxDefaultPosition, wxDefaultSize, wxFLP_SAVE | wxFLP_USE_TEXTCTRL );
+            wxDefaultPosition, textSize, wxFLP_SAVE | wxFLP_USE_TEXTCTRL );
     _projectionType = PopulateProjectionType();
     _polynomialOrder = new wxTextCtrl( this, ID_PolynomialOrder );
 

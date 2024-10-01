@@ -20,7 +20,7 @@ BaseDlg::~BaseDlg()
 void BaseDlg::AddLine( wxBoxSizer *topSizer, wxControl* control, const wxString& name )
 {
     wxBoxSizer *sideSizer = new wxBoxSizer( wxHORIZONTAL );
-    sideSizer->Add( new wxStaticText( this, wxID_ANY, name ) );
+    sideSizer->Add( new wxStaticText( this, wxID_ANY, name, wxDefaultPosition, wxSize( LABEL_WIDTH, -1 ) ) );
     sideSizer->Add( control );
     topSizer->Add( sideSizer );
 }
