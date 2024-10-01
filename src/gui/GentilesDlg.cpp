@@ -48,7 +48,7 @@ GentilesDlg::GentilesDlg() :
         topSizer->Add( next, wxEXPAND );
     }
 
-    _progressBar = new wxGauge( this, ID_MinZoom, 100, wxDefaultPosition, wxSize( TEXT_WIDTH + LABEL_WIDTH, -1 ) );
+    _progressBar = new wxGauge( this, ID_MinZoom, 100, wxDefaultPosition, wxSize( TEXT_WIDTH, -1 ) );
     _percentage = new wxStaticText( this, ID_Percentage, wxEmptyString );
     AddGroup( topSizer, _progressBar, _percentage, nullptr );
 
