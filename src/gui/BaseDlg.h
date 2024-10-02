@@ -5,6 +5,7 @@
 const int LABEL_WIDTH = 200;
 const int TEXT_WIDTH = 500;
 const int TEXT_HEIGHT = 250;
+const int DESC_WIDTH = 400;
 
 class BaseDlg : public wxDialog
 {

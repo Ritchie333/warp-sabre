@@ -23,14 +23,18 @@ WarpDlg::WarpDlg() :
             wxDefaultPosition, textSize, wxFLP_SAVE | wxFLP_USE_TEXTCTRL );
     _projectionType = PopulateProjectionType();
     _polynomialOrder = new wxTextCtrl( this, ID_PolynomialOrder );
+    _description = new wxTextCtrl( this, ID_Description, wxEmptyString, wxDefaultPosition, wxSize( DESC_WIDTH, -1 ) );
 
     AddLine( topSizer, _inputFile, _( "Input file " ) );
     AddLine( topSizer, _pointsFile, _( "Points file" ) );
     AddLine( topSizer, _outputName, _( "Output name" ) );
     AddLine( topSizer, _projectionType, _( "Projection type" ) );
     AddLine( topSizer, _polynomialOrder, _( "Polynomial order" ) );
+    AddLine( topSizer, _description, _( "Description") );
 
-    AddGroup( topSizer, new wxButton( this, ID_Warp, _( "Warp" ) ), 
+    AddGroup( topSizer,
+        new wxButton( this, ID_Warp, _( "Warp" ) ),
+        new wxButton( this, ID_Test, _( "Test" ) ),
         new wxButton( this, wxID_CLOSE, ("Close" ) ),
         nullptr );
 
@@ -54,12 +58,29 @@ wxChoice* WarpDlg::PopulateProjectionType()
 
 void WarpDlg::OnWarp()
 {
+    if( wxEmptyString == _inputFile->GetPath() ) {
+        wxMessageBox( _( "Input file not specified" ) );
+        return;
+    }
+    if( wxEmptyString == _pointsFile->GetPath() ) {
+        wxMessageBox( _( "Points file not specified" ) );
+        return;
+    }
+    if( wxEmptyString == _outputName->GetPath() ) {
+        wxMessageBox( _( "Output file not specified" ) );
+        return;
+    }
+
     _warp.inputImageFilename = _inputFile->GetPath();
     _warp.inputPointsFilename = _pointsFile->GetPath();
     _warp.outputFilename = RemoveFileExtension( _outputName->GetPath().ToStdString() );
     wxString polyString = _polynomialOrder->GetValue();
     if( polyString != wxEmptyString ) {
         _warp.polynomialOrder = wxAtoi( _polynomialOrder->GetValue() );
+    }
+    wxString desc = _description->GetValue();
+    if( desc != wxEmptyString ) {
+        _warp.kmlName = desc;
     }
     _warp.projType = ( PolyProjectArgs::ProjType ) _projectionType->GetSelection();
     _progressDialog.ShowModal();
@@ -68,12 +89,18 @@ void WarpDlg::OnWarp()
 void WarpDlg::OnButton( wxCommandEvent& event )
 {
     const int id = event.GetId();
-    if( wxID_CLOSE == id ) {
-         _progressDialog.Close();
-        Destroy();
-    }
-    if( ID_Warp == id )
-    {
-        OnWarp();
+    switch( id ) {
+        case wxID_CLOSE :
+            _progressDialog.Close();
+            Destroy();
+            break;
+        case ID_Warp :
+            _warp.fitOnly = false;
+            OnWarp();
+            break;
+        case ID_Test :
+            _warp.fitOnly = true;
+            OnWarp();
+            break;
     }
 }

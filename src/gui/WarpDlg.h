@@ -17,7 +17,9 @@ enum
     ID_OutputName,
     ID_ProjectionType,
     ID_PolynomialOrder,
+    ID_Description,
     ID_Warp,
+    ID_Test,
     ID_Warp_Dlg
 };
 
@@ -32,6 +34,7 @@ private:
     wxFilePickerCtrl* _outputName;
     wxChoice* _projectionType;
     wxTextCtrl* _polynomialOrder;
+    wxTextCtrl* _description;
 
     Warp _warp;
     WarpProgressDialog _progressDialog;

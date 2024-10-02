@@ -1,4 +1,5 @@
 #include "WarpProgressDlg.h"
+#include "BaseDlg.h"
 #include "../ImgMagick.h"
 
 BEGIN_EVENT_TABLE(WarpProgressDialog, wxDialog)
@@ -11,11 +12,12 @@ END_EVENT_TABLE()
 WarpProgressDialog::WarpProgressDialog( wxWindow* parent, int id, Warp& warp ) :
     wxDialog( parent, id, _( "Output - in progress" ), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER ),
     _warp( warp ),
-    _warpThread( new WarpThread( this, _warp ) )
+    _warpThread( nullptr )
 {
     wxBoxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
-    _output = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 400, 400 ), wxTE_MULTILINE | wxHSCROLL );
-    topSizer->Add( _output );
+    _output = new wxTextCtrl( this, wxID_ANY, wxEmptyString,
+        wxDefaultPosition, wxSize( TEXT_WIDTH, TEXT_HEIGHT ), wxTE_MULTILINE | wxHSCROLL );
+    topSizer->Add( _output, 0, wxEXPAND | wxALL );
 
     wxButton *close = new wxButton( this, wxID_CLOSE, _( "Close" ) );
     topSizer->Add( close );
@@ -25,15 +27,24 @@ WarpProgressDialog::WarpProgressDialog( wxWindow* parent, int id, Warp& warp ) :
 
 WarpProgressDialog::~WarpProgressDialog()
 {
+    if( _warpThread ) {
+        _warpThread->Delete();
+    }
 }
 
 void WarpProgressDialog::OnInitDialog( wxInitDialogEvent& event )
 {
-   _warpThread->Run();
+    _output->SetValue( wxEmptyString );
+    _warpThread = new WarpThread( this, _warp );
+    _warpThread->Run();
 }
 
 void WarpProgressDialog::OnClose( wxCommandEvent& /* event */ )
 {
+    if( _warpThread ) {
+        _warpThread->Delete();
+    }
+    _warpThread = nullptr;
     EndModal( wxID_CLOSE );
 }
 
