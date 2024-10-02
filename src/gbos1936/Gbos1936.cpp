@@ -1010,7 +1010,7 @@ void ConvertGeoToCas(double wlat, double wlon, double he,
                        const GridData& CSGrid )
 {
     const double a = CSGrid.ellip.a / CSGrid.Unit;
-    const double b = CSGrid.ellip.a / CSGrid.Unit;
+    const double b = CSGrid.ellip.b / CSGrid.Unit;
 
     const long double e2 = ((a * a) - (b * b)) / (a * a);
 
@@ -1179,7 +1179,7 @@ void ConvertWgs84ToOsi65(double lat, double lon, double he, double &latOut, doub
     {
         old_lat = shift_lat;
         old_lon = shift_lon;
-        GetOsiShift(lat, lon, shift_lat, shift_lon);
+        GetOsiShift(latOut, lonOut, shift_lat, shift_lon);
         if (abs(shift_lon - old_lon ) < 1e-10 &&
             abs(shift_lat - old_lat ) < 1e-10)
         {
@@ -1188,7 +1188,7 @@ void ConvertWgs84ToOsi65(double lat, double lon, double he, double &latOut, doub
         else
         {
             latOut = lat - shift_lat;
-            lonOut = lat - shift_lon;
+            lonOut = lon - shift_lon;
         }
     }
     heOut = 0.0;
@@ -1428,8 +1428,9 @@ void HelmertConverter::ConvertWOIToWgs84(double ea, double no, double he,
     double osilat = 0;
     double osilng = 0;
     ::ConvertCasToGeo(ea, no, he, osilat, osilng, heOut, MakeCasWOI() );
-    Geo2Geo( osilat, osilng, OSI65, WGS84, latOut, lonOut );
-
+    ConvertOsi65ToWgs84( osilat * ( M_PI / 180 ), osilng * ( M_PI / 180 ), he, latOut, lonOut, heOut );
+    latOut = latOut * ( 180 / M_PI );
+    lonOut = lonOut * ( 180 / M_PI );
 }
 
 void HelmertConverter::ConvertBnSToWgs84(double lat, double lon, double he,
@@ -1485,7 +1486,10 @@ void HelmertConverter::ConvertWgs84ToWOI(double lat, double lon, double he,
 {
     double osilat = 0;
     double osilon = 0;
-    Geo2Geo( lat, lon, WGS84, OSI65, osilat, osilon );
+    double osihe = 0;
+    ConvertWgs84ToOsi65( lat * (M_PI / 180), lon * (M_PI / 180), he, osilat, osilon, osihe );
+    osilat = osilat * ( 180 / M_PI) ;
+    osilon = osilon * ( 180 / M_PI );
     ::ConvertGeoToCas(osilat, osilon, he, eaOut, noOut, MakeCasWOI());
 }
 
