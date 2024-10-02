@@ -7,6 +7,7 @@ BEGIN_EVENT_TABLE(GentilesDlg, BaseDlg)
     EVT_COMMAND(wxID_ANY, wxEVT_GENTILES_END, GentilesDlg::OnTilesEnd)
     EVT_COMMAND(wxID_ANY, wxEVT_GENTILES_PROGRESS, GentilesDlg::OnProgress)
     EVT_COMMAND(wxID_ANY, wxEVT_GENTILES_LENGTH, GentilesDlg::OnLength )
+    EVT_COMMAND(wxID_ANY, wxEVT_GENTILES_ERR, GentilesDlg::OnError )
 END_EVENT_TABLE()
 
 const int OUTPUT_LINES = 2; // Display this many most recent lines in the output
@@ -29,7 +30,8 @@ GentilesDlg::GentilesDlg() :
     const int inputBrowseWidth = inputBrowse->GetSize().GetWidth();
     inputSizer->Add( new wxStaticText( this, wxID_ANY, ( "Input files" ), wxDefaultPosition,
         wxSize( LABEL_WIDTH - inputBrowseWidth, -1 ) ) );
-    _inputFiles = new wxTextCtrl( this, ID_InputFiles, wxEmptyString, wxDefaultPosition, textSize, wxTE_MULTILINE );
+    _inputFiles = new wxTextCtrl( this, ID_InputFiles, wxEmptyString, wxDefaultPosition,
+        wxSize( TEXT_WIDTH, TEXT_HEIGHT ), wxTE_MULTILINE );
     inputSizer->Add( _inputFiles );
     inputSizer->Add( inputBrowse );
     topSizer->Add( inputSizer );
@@ -135,7 +137,7 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
 void GentilesDlg::OnLog( wxCommandEvent& event )
 {
     if( _output.size() > 0 ) {
-        for( int i = 1; i < _output.size(); i++ ) {
+        for( size_t i = 1; i < _output.size(); i++ ) {
             _output[ i - 1 ]->SetLabel( _output[ i ]->GetLabel() );
         }
         _output[ _output.size() - 1 ]->SetLabel( event.GetString() );
@@ -164,6 +166,12 @@ void GentilesDlg::OnLength( wxCommandEvent& event )
 {
     _length = event.GetInt();
     _progressBar->SetRange( _length );
+}
+
+void GentilesDlg::OnError( wxCommandEvent& event )
+{
+    OnLog( event );
+    wxMessageBox( event.GetString(), _T( "Error" ) );
 }
 
 GentilesThread::GentilesThread(wxEvtHandler* parent, TileRunner& runner ) :
@@ -218,5 +226,13 @@ void GentilesThread::Progress( const int position )
 {
     wxCommandEvent evt( wxEVT_GENTILES_PROGRESS, wxID_ANY );
     evt.SetInt( position );
+    _parent->AddPendingEvent( evt );
+}
+
+void GentilesThread::Error( const string& value )
+{
+    // Raise an error with this thread
+    wxCommandEvent evt( wxEVT_GENTILES_ERR, wxID_ANY );
+    evt.SetString( value + _( "\n" ) );
     _parent->AddPendingEvent( evt );
 }

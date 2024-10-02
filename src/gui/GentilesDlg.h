@@ -16,6 +16,7 @@ const int wxEVT_GENTILES_LOG = 6147;
 const int wxEVT_GENTILES_END = 6148;
 const int wxEVT_GENTILES_PROGRESS = 6149;
 const int wxEVT_GENTILES_LENGTH = 6150;
+const int wxEVT_GENTILES_ERR = 6151;
 
 enum
 {
@@ -46,6 +47,7 @@ public:
 
     virtual void Add( const string& value );
     virtual void Progress( const int position );
+    virtual void Error( const string& value );
 };
 
 class GentilesDlg : public BaseDlg
@@ -78,6 +80,7 @@ private:
     void OnTilesEnd( wxCommandEvent& event );
     void OnProgress( wxCommandEvent& event );
     void OnLength( wxCommandEvent& event );
+    void OnError( wxCommandEvent& event );
 
     bool ValidateZoom( const wxString& type, const wxTextCtrl* zoom );
 

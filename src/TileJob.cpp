@@ -332,7 +332,7 @@ int TileRunner::RequestTileLoading(class SourceKml*src, const size_t size, class
 	if (ret < 0)
 	{
 		stringstream output;
-		output << "Failed to open image " << toLoad.imgFilename;
+		output << "Failed to open image " << toLoad.imgFilename << " " << toLoad.image.GetLastError();
 		logger->Add( output.str() );
 		return 0;
 	}
@@ -544,6 +544,8 @@ void TileRunner::SetupTileJobs()
 	//** Calculate tile jobs to do
 	//************************************
 	
+	running = true;
+
 	for (unsigned int zoom = minZoom; zoom <= maxZoom; zoom++)
 	{
 		int srcWtile = long2tile(sourceBBox.lonmin, zoom);
@@ -560,6 +562,10 @@ void TileRunner::SetupTileJobs()
 		for (int tileLon = srcWtile; tileLon <= srcEtile; tileLon++)
 			for (int tileLat = srcNtile; tileLat <= srcStile; tileLat++)
 			{
+				if( !running ) {
+					return;
+				}
+
 				class TileJob job( this );
 
 				string outFilename = outFolder;
