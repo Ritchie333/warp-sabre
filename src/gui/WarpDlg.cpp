@@ -57,7 +57,10 @@ void WarpDlg::OnWarp()
     _warp.inputImageFilename = _inputFile->GetPath();
     _warp.inputPointsFilename = _pointsFile->GetPath();
     _warp.outputFilename = RemoveFileExtension( _outputName->GetPath().ToStdString() );
-    _warp.polynomialOrder = atoi( _polynomialOrder->GetValue() );
+    wxString polyString = _polynomialOrder->GetValue();
+    if( polyString != wxEmptyString ) {
+        _warp.polynomialOrder = atoi( _polynomialOrder->GetValue() );
+    }
     _warp.projType = ( PolyProjectArgs::ProjType ) _projectionType->GetSelection();
     _progressDialog.ShowModal();
 }

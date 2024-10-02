@@ -78,7 +78,9 @@ private:
     void OnTilesEnd( wxCommandEvent& event );
     void OnProgress( wxCommandEvent& event );
     void OnLength( wxCommandEvent& event );
-    
+
+    bool ValidateZoom( const wxString& type, const wxTextCtrl* zoom );
+
     DECLARE_EVENT_TABLE()
 
 };

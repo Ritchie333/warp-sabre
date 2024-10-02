@@ -10,6 +10,8 @@ BEGIN_EVENT_TABLE(GentilesDlg, BaseDlg)
 END_EVENT_TABLE()
 
 const int OUTPUT_LINES = 2; // Display this many most recent lines in the output
+const int MAX_ZOOM = 20;    // OSM doesn't support more than this
+
 
 GentilesDlg::GentilesDlg() :
     BaseDlg( _( "gentiles" ), wxDefaultPosition, wxSize( 400, -1 ) ),
@@ -64,19 +66,34 @@ GentilesDlg::~GentilesDlg()
 {
 }
 
+bool GentilesDlg::ValidateZoom( const wxString& type, const wxTextCtrl* zoom )
+{
+    int iZoom = wxAtoi( zoom->GetValue() );
+    if( iZoom <= 0 || iZoom > MAX_ZOOM ) {
+        wxString error = _( "Invalid zoom - " ) + type;
+        wxMessageBox( error );
+        return false;
+    }
+    return true;
+}
+
 void GentilesDlg::OnButton( wxCommandEvent& event )
 {
     const int id = event.GetId();
     switch( id ) {
         case wxID_CLOSE :
             if( _thread ) {
-                _runner.Abort();;
+                _runner.Abort();
                 _thread->Wait();
+                _thread->Delete();
             }
             Destroy();
             break;
         case ID_Start :
         case ID_Clear :
+            if( !ValidateZoom( _("minimum"), _minZoom ) || !ValidateZoom( _("maximum"), _maxZoom ) ) {
+                return;
+            }
             _runner.inputFiles.clear();
             for( wxString& next : wxSplit( _inputFiles->GetValue(), '\n')) {
                 if ( next != wxEmptyString ) {
@@ -87,6 +104,9 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
             _runner.outFolder = _outputFolder->GetPath();
             _runner.minZoom = atoi( _minZoom->GetValue() );
             _runner.maxZoom = atoi( _maxZoom->GetValue() );
+            if( _runner.minZoom < 0 || _runner.minZoom > MAX_ZOOM ) {
+                wxMessageBox( _("Invalid minimum zoom"));
+            }
             _runner.maxTilesLoaded = _runner.inputFiles.size();
 
             _startButton->Disable();
