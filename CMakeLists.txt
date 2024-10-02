@@ -63,7 +63,7 @@ add_library(warp-conversion STATIC
     src/gbos1936/Gbos1936.cpp
 )
 
-add_library(warp STATIC
+add_library(warp SHARED
     src/CalibrationFile.cpp
     src/CopyPixels.cpp
     src/GetBounds.cpp
@@ -117,21 +117,21 @@ target_include_directories(warp PUBLIC
     ${PROJECT_SOURCE_DIR}/newmat-10
 )
 
-target_link_libraries(warp-sabre
+target_link_libraries( warp
     PRIVATE ImageMagick::MagickWand
+    PRIVATE xml2
+    PRIVATE Boost::thread
     PRIVATE Boost::system
     PRIVATE morph
     PRIVATE newmat
     PRIVATE warp-conversion
+)
+
+target_link_libraries(warp-sabre
     PRIVATE warp
 )
 
 target_link_libraries(warp-sabre-gui
-    PRIVATE ImageMagick::MagickWand
-    PRIVATE Boost::system
-    PRIVATE morph
-    PRIVATE newmat
-    PRIVATE warp-conversion
     PRIVATE warp
     PRIVATE ${wxWidgets_LIBRARIES}
 )
@@ -141,22 +141,10 @@ target_include_directories(gentiles PUBLIC
 )
 
 target_link_libraries(gentiles
-    PRIVATE ImageMagick::MagickWand
-    PRIVATE xml2
-    PRIVATE Boost::thread
-    PRIVATE Boost::system
-    PRIVATE morph
-    PRIVATE warp-conversion
     PRIVATE warp
 )
 
 target_link_libraries(gentiles-gui
-    PRIVATE ImageMagick::MagickWand
-    PRIVATE xml2
-    PRIVATE Boost::thread
-    PRIVATE Boost::system
-    PRIVATE morph
-    PRIVATE warp-conversion
     PRIVATE warp
     PRIVATE ${wxWidgets_LIBRARIES}
 )
@@ -166,12 +154,6 @@ target_include_directories(cleartiles PUBLIC
 )
 
 target_link_libraries(cleartiles
-    PRIVATE ImageMagick::MagickWand
-    PRIVATE xml2
-    PRIVATE Boost::thread
-    PRIVATE Boost::system
-    PRIVATE morph
-    PRIVATE warp-conversion
     PRIVATE warp
 )
 
