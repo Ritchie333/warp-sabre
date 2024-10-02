@@ -59,7 +59,7 @@ void WarpDlg::OnWarp()
     _warp.outputFilename = RemoveFileExtension( _outputName->GetPath().ToStdString() );
     wxString polyString = _polynomialOrder->GetValue();
     if( polyString != wxEmptyString ) {
-        _warp.polynomialOrder = atoi( _polynomialOrder->GetValue() );
+        _warp.polynomialOrder = wxAtoi( _polynomialOrder->GetValue() );
     }
     _warp.projType = ( PolyProjectArgs::ProjType ) _projectionType->GetSelection();
     _progressDialog.ShowModal();

@@ -102,8 +102,8 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
             }
             _runner.boundsFilename = _boundsFile->GetPath();
             _runner.outFolder = _outputFolder->GetPath();
-            _runner.minZoom = atoi( _minZoom->GetValue() );
-            _runner.maxZoom = atoi( _maxZoom->GetValue() );
+            _runner.minZoom = wxAtoi( _minZoom->GetValue() );
+            _runner.maxZoom = wxAtoi( _maxZoom->GetValue() );
             if( _runner.minZoom < 0 || _runner.minZoom > MAX_ZOOM ) {
                 wxMessageBox( _("Invalid minimum zoom"));
             }
