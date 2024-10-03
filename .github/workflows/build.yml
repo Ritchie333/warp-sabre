@@ -71,5 +71,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: warp-sabre-windows
+        name: warp-sabre-gui-windows
         path: warp-sabre
