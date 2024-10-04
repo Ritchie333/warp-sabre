@@ -52,6 +52,8 @@ GentilesDlg::GentilesDlg() :
         topSizer->Add( next, wxEXPAND );
     }
 
+    topSizer->AddSpacer( 32 ); // Stops text overflow on Windows
+
     _progressBar = new wxGauge( this, ID_MinZoom, 100, wxDefaultPosition, wxSize( TEXT_WIDTH, -1 ) );
     _percentage = new wxStaticText( this, ID_Percentage, wxEmptyString );
     AddGroup( topSizer, _progressBar, _percentage, nullptr );
