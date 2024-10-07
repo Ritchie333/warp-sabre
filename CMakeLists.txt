@@ -63,7 +63,7 @@ add_library(warp-conversion STATIC
     src/gbos1936/Gbos1936.cpp
 )
 
-add_library(warp SHARED
+add_library(warp STATIC
     src/CalibrationFile.cpp
     src/CopyPixels.cpp
     src/GetBounds.cpp
