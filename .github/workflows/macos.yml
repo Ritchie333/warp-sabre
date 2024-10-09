@@ -23,7 +23,7 @@ jobs:
 
     - name: Setup Homebrew packages
       id: set-up-packages
-      run: brew install cmake imagemagick boost libxml2
+      run: brew install cmake imagemagick boost libxml2 wxwidgets
 
     - name: Build
       run: |

@@ -20,7 +20,7 @@ To build, run build_linux.sh
 
 ==macOS==
 For macOS using homebrew:
-brew install cmake imagemagick boost libxml2
+brew install cmake imagemagick boost libxml2 wxwidgets
 
 To build, run build_homebrew.sh
 
