@@ -1,0 +1,54 @@
+name: Build
+
+on:
+  push:
+    branches:
+    - gui
+
+jobs:
+  macOS:
+    strategy:
+      fail-fast: true
+
+    name: macOS
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Homebrew
+      id: set-up-homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+
+    - name: Setup Homebrew packages
+      id: set-up-packages
+      run: brew install cmake imagemagick boost libxml2
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+
+        echo "::group::CMake"
+        cmake .. \
+          -DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES=$HOMEBREW_PREFIX/include \
+          -DCMAKE_CXX_STANDARD_LIBRARIES=-L$HOMEBREW_PREFIX/lib
+          # EOF
+        echo "::endgroup::"
+
+        echo "::group::Build"
+        cmake --build .
+        echo "::endgroup::"
+
+    - name: Package
+      run: |
+        mkdir warp-sabre
+        cp build/{cleartiles,gentiles,gentiles-gui,warp-sabre,warp-sabre-gui} AUTHORS COPYING INSTALL README \
+        warp-sabre
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: warp-sabre-gui-macos
+        path: warp-sabre
