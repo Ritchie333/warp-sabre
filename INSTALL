@@ -13,6 +13,10 @@ are bundled as standard in most distributions
 For Debian Linux, you should be able to run :
 sudo apt-get install cmake g++ libboost-dev libboost-system-dev libboost-thread-dev libxml-dev
 
+The version of CMake bundled with Debian Bookworm is out of date, the recommended version (3.30)
+needs to be built from source
+See https://cmake.org/download/
+
 ImageMagick 7 is not bundled with Debian, so must be built from source.
 See https://imagemagick.org/script/install-source.php
 
