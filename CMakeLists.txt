@@ -3,7 +3,6 @@ project(warp-sabre LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_BUILD_TYPE Debug)
 
 find_package(ImageMagick REQUIRED COMPONENTS MagickWand)
 include_directories(${ImageMagick_INCLUDE_DIRS})
@@ -11,6 +10,7 @@ add_compile_options(${ImageMagick_COMPILE_OPTIONS})
 find_package(wxWidgets REQUIRED COMPONENTS core base)
 add_compile_options(-DUSE_MT_GENTILES)
 add_compile_options(-Wall)
+add_compile_options(-DWARP_SABRE_VERSION=${WARP_SABRE_VERSION})
 
 find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(LibXml2 REQUIRED)

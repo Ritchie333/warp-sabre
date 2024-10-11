@@ -47,7 +47,8 @@ jobs:
         cmake .. \
           -DLIBXML2_INCLUDE_DIR=$MINGW_PREFIX/include/libxml2 \
           -DImageMagick_COMPILE_OPTIONS=`MagickWand-config --cppflags | sed 's/ /;/g'` \
-          -DImageMagick_LIBRARIES=`MagickWand-config --libs | sed 's/ /;/g'`
+          -DImageMagick_LIBRARIES=`MagickWand-config --libs | sed 's/ /;/g'` \
+          -DWARP_SABRE_VERSION=v2.0.0.${GITHUB_RUN_NUMBER}
           # EOF
         echo "::endgroup::"
 
