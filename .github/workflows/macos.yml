@@ -34,6 +34,7 @@ jobs:
         cmake .. \
           -DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES=$HOMEBREW_PREFIX/include \
           -DCMAKE_CXX_STANDARD_LIBRARIES=-L$HOMEBREW_PREFIX/lib
+          -DWARP_SABRE_VERSION=v2.0.0.$GITHUB_RUN_NUMBER
           # EOF
         echo "::endgroup::"
 
@@ -50,5 +51,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: warp-sabre-gui-macos
+        name: warp-sabre-gui-macos-$GITHUB_RUN_NUMBER
         path: warp-sabre
