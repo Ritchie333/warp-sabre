@@ -99,18 +99,36 @@ add_executable(testcas
     src/TestCas.cpp
 )
 
-add_executable(warp-sabre-gui
-    src/gui/BaseDlg.cpp
-    src/gui/WarpDlg.cpp
-    src/gui/WarpGui.cpp
-    src/gui/WarpProgressDlg.cpp
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    enable_language("RC")
+    add_executable(warp-sabre-gui WIN32 
+        src/gui/BaseDlg.cpp
+        src/gui/WarpDlg.cpp
+        src/gui/WarpGui.cpp
+        src/gui/WarpProgressDlg.cpp
+        src/gui/windows/sabre.rc
+    )
+    add_executable(gentiles-gui WIN32
+        src/gui/BaseDlg.cpp
+        src/gui/GentilesDlg.cpp
+        src/gui/GentilesGui.cpp
+        src/gui/windows/sabre.rc
 )
+else()
 
-add_executable(gentiles-gui
-    src/gui/BaseDlg.cpp
-    src/gui/GentilesDlg.cpp
-    src/gui/GentilesGui.cpp
-)
+    add_executable(warp-sabre-gui
+        src/gui/BaseDlg.cpp
+        src/gui/WarpDlg.cpp
+        src/gui/WarpGui.cpp
+        src/gui/WarpProgressDlg.cpp
+    )
+
+    add_executable(gentiles-gui
+        src/gui/BaseDlg.cpp
+        src/gui/GentilesDlg.cpp
+        src/gui/GentilesGui.cpp
+    )
+endif()
 
 target_include_directories(warp PUBLIC
     ${PROJECT_SOURCE_DIR}/libmorph
