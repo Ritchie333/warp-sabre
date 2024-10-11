@@ -57,11 +57,10 @@ int main(int argc, char **argv)
 	string outFolder = "out";
 	int minZoom = 1;
 	int maxZoom = 17;
-	if (po.HasArg("help"))
-	{
-		cout << desc.str() << endl;
-		exit(0);
-	}
+
+	DEFINE_VERSION( po )
+	DEFINE_HELP( po, desc )
+
 	if (po.HasArg("output"))
 		outFolder = po.GetArg("output");
 	if (po.HasArg("out"))

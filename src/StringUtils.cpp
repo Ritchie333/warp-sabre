@@ -385,3 +385,15 @@ int fileExists(const char *path)
 		return false;
 	}
 }
+
+const string version( const char* pname )
+{
+	string result = RemoveFilePath( pname );
+#ifdef WARP_SABRE_VERSION
+	result += " ";
+	result += XSTR(WARP_SABRE_VERSION);
+#else
+	result += " internal";
+#endif
+	return result;
+}

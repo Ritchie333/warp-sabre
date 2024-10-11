@@ -38,4 +38,15 @@ string ToString(T input)
 	return out.str();
 }
 
+const string version( const char* pname );
+
+#define XSTR(x)	STR(x)
+#define STR(x) #x
+
+#define DEFINE_VERSION(po)	\
+	if( po.HasArg( "version" )) { cout << version( argv[ 0 ] ) << endl;	exit(0); }
+
+#define DEFINE_HELP(po, desc) \
+	if (po.HasArg("help")) { cout << desc.str() << endl; exit(0); }
+
 #endif // STRING_UTILS_H

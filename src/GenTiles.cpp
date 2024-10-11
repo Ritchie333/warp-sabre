@@ -35,20 +35,6 @@ int main(int argc, char **argv)
 {
 	ImgMagick::Init();
 
-	// Image imageInOut("step.jpg");
-	// imageInOut.crop( Geometry(255,255,0,0) );
-	// imageInOut.write("test2.png");
-
-	/*class Tile test;
-	vector<string> test2;
-	string test3;
-	int retOpen = ReadKmlFile("/home/tim/dev/os7files/rect/73.kml", test, test3, test2);
-
-	exit(0);*/
-
-	// cout << long2tile(-3.68, zoom) << "," << lat2tile(54.8333,zoom) << endl;
-	// cout << long2tile(-3.04, zoom) << "," << lat2tile(55.2446,zoom) << endl;
-
 	class DelimitedFile boundsFile;
 
 	string outFolder = "out";
@@ -79,11 +65,9 @@ int main(int argc, char **argv)
 
 	ProgramOptions po(argc, argv);
 
-	if (po.HasArg("help"))
-	{
-		cout << desc.str() << endl;
-		exit(0);
-	}
+	DEFINE_VERSION( po )
+	DEFINE_HELP( po, desc )
+
 	if (po.HasArg("minzoom"))
 		minZoom = po.GetIntArg("minzoom");
 	if (po.HasArg("maxzoom"))

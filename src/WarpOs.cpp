@@ -76,11 +76,9 @@ int main(int argc, char *argv[])
 	po.AddAlias('h', "height");
 	po.AddAlias('n', "name");
 
-	if (po.HasArg("help"))
-	{
-		cout << desc.str() << endl;
-		exit(0);
-	}
+	DEFINE_VERSION( po )
+	DEFINE_HELP( po, desc )
+
 	if (po.HasArg("in"))
 	{
 		warp.inputImageFilename = po.GetArg("in");
