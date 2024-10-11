@@ -1,4 +1,8 @@
 #include "BaseDlg.h"
+#include <wx/stdpaths.h>
+#include "../StringUtils.h"
+#include <string>
+using namespace std;
 
 BaseDlg::BaseDlg( const wxString& name ) :
     wxDialog( nullptr, wxID_ANY, name )
@@ -40,4 +44,17 @@ void BaseDlg::AddGroup( wxBoxSizer *topSizer, ... )
     } while( next );
     va_end( ap );
     topSizer->Add( sideSizer );
+}
+
+void PrintVersion()
+{
+    string exePath = wxStandardPaths::Get().GetExecutablePath().ToStdString();
+    string result = RemoveFilePath( exePath.c_str() );
+#ifdef WARP_SABRE_VERSION
+	result += " ";
+	result += XSTR(WARP_SABRE_VERSION);
+#else
+	result += " internal";
+#endif
+	wxMessageBox( result );
 }

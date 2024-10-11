@@ -18,3 +18,5 @@ protected:
 
     void AddGroup( wxBoxSizer *topSizer, ... );
 };
+
+void PrintVersion();

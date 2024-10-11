@@ -61,7 +61,8 @@ GentilesDlg::GentilesDlg() :
     _startButton = new wxButton( this, ID_Start, _( "Start" ) );
     _clearButton = new wxButton( this, ID_Clear, _( "Clear" ) );
     _closeButton = new wxButton( this, wxID_CLOSE, ("Close" ) );
-    AddGroup( topSizer, _startButton, _clearButton, _closeButton, nullptr );
+    AddGroup( topSizer, new wxButton( this, ID_About, _( "About" ) ),
+        _startButton, _clearButton, _closeButton, nullptr );
 
     SetSizerAndFit( topSizer );
 }
@@ -85,6 +86,9 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
 {
     const int id = event.GetId();
     switch( id ) {
+        case ID_About :
+            PrintVersion(); 
+            break;
         case wxID_CLOSE :
             if( _thread ) {
                 _runner.Abort();

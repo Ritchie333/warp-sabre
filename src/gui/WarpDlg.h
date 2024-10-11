@@ -20,7 +20,8 @@ enum
     ID_Description,
     ID_Warp,
     ID_Test,
-    ID_Warp_Dlg
+    ID_Warp_Dlg,
+    ID_About
 };
 
 class WarpDlg : public BaseDlg

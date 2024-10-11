@@ -33,9 +33,10 @@ WarpDlg::WarpDlg() :
     AddLine( topSizer, _description, _( "Description") );
 
     AddGroup( topSizer,
+        new wxButton( this, ID_About, _( "About" ) ),
         new wxButton( this, ID_Warp, _( "Warp" ) ),
         new wxButton( this, ID_Test, _( "Test" ) ),
-        new wxButton( this, wxID_CLOSE, ("Close" ) ),
+        new wxButton( this, wxID_CLOSE, ("Close" ) ),    
         nullptr );
 
     SetSizerAndFit( topSizer );
@@ -90,6 +91,9 @@ void WarpDlg::OnButton( wxCommandEvent& event )
 {
     const int id = event.GetId();
     switch( id ) {
+        case ID_About :
+            PrintVersion(); 
+            break;
         case wxID_CLOSE :
             _progressDialog.Close();
             Destroy();

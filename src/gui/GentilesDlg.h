@@ -30,7 +30,8 @@ enum
     ID_Progress,
     ID_Percentage,
     ID_Start,
-    ID_Clear
+    ID_Clear,
+    ID_About
 };
 
 class GentilesThread : public wxThread, public Log
