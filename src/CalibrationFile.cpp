@@ -55,7 +55,7 @@ void CalibrationFile::ReadProjection()
 				if (projType != PolyProjectArgs::Mercator)
 				{
 					logger->Add( "Cannot take lat lon input when using OS as input projection" );
-					exit(0);
+					return;
 				}
 				else
 					proj.AddPoint(imgX, imgY, ix, iy);
@@ -84,7 +84,7 @@ void CalibrationFile::ReadProjection()
 				if (projType != PolyProjectArgs::Mercator)
 				{
 					logger->Add( "Cannot take lat lon input when using OS as input projection" );
-					exit(0);
+					return;
 				}
 				else
 					proj.AddPoint(imgX, imgY, ix, iy);

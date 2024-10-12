@@ -17,6 +17,7 @@ enum
     ID_OutputName,
     ID_ProjectionType,
     ID_PolynomialOrder,
+    ID_FolderName,
     ID_Description,
     ID_Warp,
     ID_Test,
@@ -34,15 +35,18 @@ private:
     wxFilePickerCtrl* _pointsFile;
     wxFilePickerCtrl* _outputName;
     wxChoice* _projectionType;
-    wxTextCtrl* _polynomialOrder;
+    wxChoice* _polynomialOrder;
+    wxTextCtrl* _name;
     wxTextCtrl* _description;
 
     Warp _warp;
     WarpProgressDialog _progressDialog;
 
     wxChoice* PopulateProjectionType();
+    wxChoice* PopulatePolynomialOrder();
 
     void OnButton( wxCommandEvent& event );
+    void OnFilePickerChanged( wxFileDirPickerEvent& event );
     void OnWarp();
 
     DECLARE_EVENT_TABLE()

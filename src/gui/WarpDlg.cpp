@@ -1,12 +1,17 @@
 #include "WarpDlg.h"
 #include "../Warp.h"
 #include "../StringUtils.h"
+#include "../ReadDelimitedFile.h"
 #include <vector>
+#include <ranges>
+
+const int MAX_POLY = 5;
 
 using namespace std;
 
 BEGIN_EVENT_TABLE(WarpDlg, BaseDlg)
     EVT_BUTTON(wxID_ANY, WarpDlg::OnButton)
+    EVT_FILEPICKER_CHANGED(wxID_ANY, WarpDlg::OnFilePickerChanged)
 END_EVENT_TABLE()
 
 WarpDlg::WarpDlg() :
@@ -22,7 +27,8 @@ WarpDlg::WarpDlg() :
     _outputName = new wxFilePickerCtrl( this, ID_OutputName, wxEmptyString, wxFileSelectorPromptStr, wxFileSelectorDefaultWildcardStr, 
             wxDefaultPosition, textSize, wxFLP_SAVE | wxFLP_USE_TEXTCTRL );
     _projectionType = PopulateProjectionType();
-    _polynomialOrder = new wxTextCtrl( this, ID_PolynomialOrder );
+    _polynomialOrder = PopulatePolynomialOrder();
+    _name = new wxTextCtrl( this, ID_FolderName, wxEmptyString, wxDefaultPosition, wxSize( DESC_WIDTH, -1 ) );
     _description = new wxTextCtrl( this, ID_Description, wxEmptyString, wxDefaultPosition, wxSize( DESC_WIDTH, -1 ) );
 
     AddLine( topSizer, _inputFile, _( "Input file " ) );
@@ -30,6 +36,7 @@ WarpDlg::WarpDlg() :
     AddLine( topSizer, _outputName, _( "Output name" ) );
     AddLine( topSizer, _projectionType, _( "Projection type" ) );
     AddLine( topSizer, _polynomialOrder, _( "Polynomial order" ) );
+    AddLine( topSizer, _name, _( "Map name" ) );
     AddLine( topSizer, _description, _( "Description") );
 
     AddGroup( topSizer,
@@ -57,6 +64,15 @@ wxChoice* WarpDlg::PopulateProjectionType()
     return new wxChoice( this, ID_ProjectionType, wxDefaultPosition, wxDefaultSize, choices.size(), &choices[0] );
 }
 
+wxChoice* WarpDlg::PopulatePolynomialOrder()
+{
+    vector<wxString> orders;
+    for( int i = 1; i <= MAX_POLY; i++ ) {
+        orders.push_back( wxString::Format(wxT("%i"),i) );
+    }
+    return new wxChoice( this, ID_PolynomialOrder, wxDefaultPosition, wxDefaultSize, orders.size(), &orders[0] );
+}
+
 void WarpDlg::OnWarp()
 {
     if( wxEmptyString == _inputFile->GetPath() ) {
@@ -75,13 +91,14 @@ void WarpDlg::OnWarp()
     _warp.inputImageFilename = _inputFile->GetPath();
     _warp.inputPointsFilename = _pointsFile->GetPath();
     _warp.outputFilename = RemoveFileExtension( _outputName->GetPath().ToStdString() );
-    wxString polyString = _polynomialOrder->GetValue();
-    if( polyString != wxEmptyString ) {
-        _warp.polynomialOrder = wxAtoi( _polynomialOrder->GetValue() );
+    _warp.polynomialOrder = _polynomialOrder->GetSelection() + 1;
+    wxString name = _name->GetValue();
+    if( name != wxEmptyString ) {
+        _warp.kmlName = name;
     }
     wxString desc = _description->GetValue();
     if( desc != wxEmptyString ) {
-        _warp.kmlName = desc;
+        _warp.kmlDesc = desc;
     }
     _warp.projType = ( PolyProjectArgs::ProjType ) _projectionType->GetSelection();
     _progressDialog.ShowModal();
@@ -106,5 +123,58 @@ void WarpDlg::OnButton( wxCommandEvent& event )
             _warp.fitOnly = true;
             OnWarp();
             break;
+    }
+}
+
+void WarpDlg::OnFilePickerChanged( wxFileDirPickerEvent& event )
+{
+    // If a valid points file has been selected, auto-guess things
+    const int id = event.GetId();
+    switch( id ) {
+        case ID_PointsFile: {
+            wxString path = event.GetPath();
+            if( path != wxEmptyString ) {
+                DelimitedFile file;
+                if( file.Open( path ) > 0 ) {
+                    // Guess the projection type from the input file
+                    const char* projTypes[] = {
+                        "os", "p", "cas", "bns", "bni", "bnf", "osi", "wo", "woi", "osy", nullptr
+                    };
+
+                    PolyProjectArgs::ProjType projType = PolyProjectArgs::ProjType::Mercator;
+                    for( int i = 0; i < file.NumLines(); i++ ) {
+                        DelimitedFileLine& line = file.GetLine( i );
+                        DelimitedFileValue& val = line.GetVal( 0 );
+                        string proj = val.GetVals();
+                        for( int j = 0; projTypes[ j ]; j++ ) {
+                            if ( proj == projTypes[ j ] ) {
+                                projType = ( PolyProjectArgs::ProjType) j;
+                                break;
+                            }
+                        }
+                        if( projType != PolyProjectArgs::ProjType::Mercator ) {
+                            break;
+                        }
+                    }
+                    _projectionType->SetSelection( projType );
+                    // Guess the polynomial order from the points
+                    int polynomialOrder = CalcOrderFitForNumConstraints( 2 * file.NumLines() );
+                    if( polynomialOrder < 1 ) {
+                        polynomialOrder = 1;
+                    }
+                    if( polynomialOrder > MAX_POLY ) {
+                        polynomialOrder = MAX_POLY;
+                    }
+                    _polynomialOrder->SetSelection( polynomialOrder - 1 );
+                } else {
+                    wxMessageBox( _("Unable to open points file ") + path );
+                }
+            }
+            break;
+        }
+        case ID_OutputName: {
+            _outputName->SetPath( RemoveFileExtension( event.GetPath().ToStdString() ) );
+            break;
+        }
     }
 }

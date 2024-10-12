@@ -16,6 +16,7 @@ public:
     string inputPointsFilename;
     string outputFilename;
     string kmlName;
+    string kmlDesc;
     PolyProjectArgs::ProjType projType;
     vector<string> corners;
     int polynomialOrder;

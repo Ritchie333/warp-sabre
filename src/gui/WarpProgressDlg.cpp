@@ -27,9 +27,7 @@ WarpProgressDialog::WarpProgressDialog( wxWindow* parent, int id, Warp& warp ) :
 
 WarpProgressDialog::~WarpProgressDialog()
 {
-    if( _warpThread ) {
-        _warpThread->Delete();
-    }
+    _warpThread = nullptr;
 }
 
 void WarpProgressDialog::OnInitDialog( wxInitDialogEvent& event )
@@ -56,6 +54,7 @@ void WarpProgressDialog::OnLog( wxCommandEvent& event )
 void WarpProgressDialog::OnWarpEnd( wxCommandEvent& /* event */ )
 {
     SetTitle( _( "Output - completed" ) );
+    _warpThread = nullptr;
 }
 
 WarpThread::WarpThread(wxEvtHandler* parent, Warp& warp ) :

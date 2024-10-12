@@ -173,7 +173,8 @@ int Warp::Run()
 		writeKml.south = tile.latmin;
 		writeKml.west = tile.lonmin;
 		writeKml.east = tile.lonmax;
-		writeKml.description = kmlName; 
+		writeKml.folderName = kmlName;
+		writeKml.description = kmlDesc; 
 		string kmlOutFilename = outputFilename + ".kml";
 		writeKml.href = mapOutFileNoPath;
 		stringstream line;

@@ -44,9 +44,9 @@ const string version( const char* pname );
 #define STR(x) #x
 
 #define DEFINE_VERSION(po)	\
-	if( po.HasArg( "version" )) { cout << version( argv[ 0 ] ) << endl;	exit(0); }
+	if( po.HasArg( "version" )) { cout << version( argv[ 0 ] ) << endl;	return 0; }
 
 #define DEFINE_HELP(po, desc) \
-	if (po.HasArg("help")) { cout << desc.str() << endl; exit(0); }
+	if (po.HasArg("help")) { cout << desc.str() << endl; return 0; }
 
 #endif // STRING_UTILS_H

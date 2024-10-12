@@ -97,14 +97,14 @@ int main(int argc, char **argv)
 		cout << "No input KML files were specified" << endl;
 		cout << "Usage: " << execFilename << " [options]" << endl;
 		cout << desc.str() << endl;
-		exit(0);
+		return 0;
 	}
 
 	if (minZoom > maxZoom)
 	{
 		cout << "Error max zoom is lower than min zoom" << endl;
 		cout << desc.str() << endl;
-		exit(0);
+		return 0;
 	}
 
 	class TileRunner tileRun( targetNumThreads );
@@ -124,4 +124,6 @@ int main(int argc, char **argv)
 	cout << "Number of tiles failed: " << tileRun.CountFailures() << endl;
 
 	ImgMagick::Term();
+
+	return 1;
 }

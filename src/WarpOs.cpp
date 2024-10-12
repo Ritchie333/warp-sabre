@@ -82,6 +82,10 @@ int main(int argc, char *argv[])
 		warp.corners = po.GetMultiArg("corner");
 	if (po.HasArg("name"))
 		warp.kmlName = po.GetArg("name");
+	if (po.HasArg("desc"))
+		warp.kmlDesc = po.GetArg("desc");
+	if (po.HasArg("description"))
+		warp.kmlDesc = po.GetArg("description");
 	if (po.HasArg("outproj"))
 	{
 		outproj = po.GetArg("outproj");

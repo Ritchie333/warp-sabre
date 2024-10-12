@@ -152,6 +152,8 @@ void GentilesDlg::OnLog( wxCommandEvent& event )
  
 void GentilesDlg::OnTilesEnd( wxCommandEvent& /*event*/ )
 {
+    _progressBar->SetRange( _length );
+    _percentage->SetLabel( _( "100%" ) );
     _thread = nullptr;
     _startButton->Enable();
     _clearButton->Enable();
