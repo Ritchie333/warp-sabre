@@ -135,14 +135,14 @@ void WarpDlg::OnFilePickerChanged( wxFileDirPickerEvent& event )
             wxString path = event.GetPath();
             if( path != wxEmptyString ) {
                 DelimitedFile file;
-                if( file.Open( path ) > 0 ) {
+                if( file.Open( path.mb_str() ) > 0 ) {
                     // Guess the projection type from the input file
                     const char* projTypes[] = {
                         "os", "p", "cas", "bns", "bni", "bnf", "osi", "wo", "woi", "osy", nullptr
                     };
 
                     PolyProjectArgs::ProjType projType = PolyProjectArgs::ProjType::Mercator;
-                    for( int i = 0; i < file.NumLines(); i++ ) {
+                    for( unsigned int i = 0; i < file.NumLines(); i++ ) {
                         DelimitedFileLine& line = file.GetLine( i );
                         DelimitedFileValue& val = line.GetVal( 0 );
                         string proj = val.GetVals();
