@@ -75,7 +75,7 @@ wxChoice* WarpDlg::PopulatePolynomialOrder()
 
 void WarpDlg::OnWarp()
 {
-    if( wxEmptyString == _inputFile->GetPath() ) {
+    if( wxEmptyString == _inputFile->GetPath() && !_warp.fitOnly ) {
         wxMessageBox( _( "Input file not specified" ) );
         return;
     }
@@ -83,7 +83,7 @@ void WarpDlg::OnWarp()
         wxMessageBox( _( "Points file not specified" ) );
         return;
     }
-    if( wxEmptyString == _outputName->GetPath() ) {
+    if( wxEmptyString == _outputName->GetPath() && !_warp.fitOnly ) {
         wxMessageBox( _( "Output file not specified" ) );
         return;
     }
@@ -126,54 +126,83 @@ void WarpDlg::OnButton( wxCommandEvent& event )
     }
 }
 
+void WarpDlg::OnPointsFileChanged( const string& path )
+{
+    if( fileExists( path.c_str() ) ) {
+        DelimitedFile file;
+        if( file.Open( path.c_str() ) > 0 ) {
+            // Guess the projection type from the input file
+            // Note that if a type is not defined here, it assumes mercator or "mixed mode" projection
+            const char* projTypes[] = {
+                "os", "", "cas", "bns", "bni", "bnf", "osi", "wo", "woi", "osy", nullptr
+            };
+
+            PolyProjectArgs::ProjType projType = PolyProjectArgs::ProjType::Mercator;
+            bool projSet = false;
+            for( unsigned int i = 0; i < file.NumLines(); i++ ) {
+                PolyProjectArgs::ProjType nextProjType = PolyProjectArgs::ProjType::Mercator;
+                DelimitedFileLine& line = file.GetLine( i );
+                DelimitedFileValue& val = line.GetVal( 0 );
+                string proj = val.GetVals();
+                if( !proj.empty() ) {
+                    for( int j = 0; projTypes[ j ]; j++ ) {
+                        if ( proj == projTypes[ j ] ) {
+                            nextProjType = ( PolyProjectArgs::ProjType) j;
+                            break;
+                        }
+                    }
+                    
+                    // Projection has been found, but if it clashes with another one,
+                    // then it's a "mixed mode" and must revert to mercator
+                    if( !projSet ) {
+                        projType = nextProjType;
+                        projSet = true;
+                    } else {
+                        if( nextProjType != projType ) {
+                            projType = PolyProjectArgs::ProjType::Mercator;
+                        }
+                    }
+                }
+                if( projType == PolyProjectArgs::ProjType::Mercator ) {
+                    break;
+                }
+            }
+            _projectionType->SetSelection( projType );
+            // Guess the polynomial order from the points
+            int polynomialOrder = CalcOrderFitForNumConstraints( 2 * file.NumLines() );
+            if( polynomialOrder < 1 ) {
+                polynomialOrder = 1;
+            }
+            if( polynomialOrder > MAX_POLY ) {
+                polynomialOrder = MAX_POLY;
+            }
+            _polynomialOrder->SetSelection( polynomialOrder - 1 );
+        } else {
+            wxMessageBox( _("Unable to open points file ") + path );
+        }
+    }
+}
+
 void WarpDlg::OnFilePickerChanged( wxFileDirPickerEvent& event )
 {
     // If a valid points file has been selected, auto-guess things
     const int id = event.GetId();
+    string path = event.GetPath().ToStdString();
     switch( id ) {
-        case ID_PointsFile: {
-            wxString path = event.GetPath();
-            if( path != wxEmptyString ) {
-                DelimitedFile file;
-                if( file.Open( path.mb_str() ) > 0 ) {
-                    // Guess the projection type from the input file
-                    const char* projTypes[] = {
-                        "os", "p", "cas", "bns", "bni", "bnf", "osi", "wo", "woi", "osy", nullptr
-                    };
-
-                    PolyProjectArgs::ProjType projType = PolyProjectArgs::ProjType::Mercator;
-                    for( unsigned int i = 0; i < file.NumLines(); i++ ) {
-                        DelimitedFileLine& line = file.GetLine( i );
-                        DelimitedFileValue& val = line.GetVal( 0 );
-                        string proj = val.GetVals();
-                        for( int j = 0; projTypes[ j ]; j++ ) {
-                            if ( proj == projTypes[ j ] ) {
-                                projType = ( PolyProjectArgs::ProjType) j;
-                                break;
-                            }
-                        }
-                        if( projType != PolyProjectArgs::ProjType::Mercator ) {
-                            break;
-                        }
-                    }
-                    _projectionType->SetSelection( projType );
-                    // Guess the polynomial order from the points
-                    int polynomialOrder = CalcOrderFitForNumConstraints( 2 * file.NumLines() );
-                    if( polynomialOrder < 1 ) {
-                        polynomialOrder = 1;
-                    }
-                    if( polynomialOrder > MAX_POLY ) {
-                        polynomialOrder = MAX_POLY;
-                    }
-                    _polynomialOrder->SetSelection( polynomialOrder - 1 );
-                } else {
-                    wxMessageBox( _("Unable to open points file ") + path );
-                }
+        case ID_InputFile : {
+            string pointsFile = RemoveFileExtension( path ) + ".csv";
+            if( fileExists( pointsFile.c_str() ) ) {
+                _pointsFile->SetPath( pointsFile );
+                OnPointsFileChanged( pointsFile );
             }
             break;
         }
+        case ID_PointsFile: {
+            OnPointsFileChanged( path );
+            break;
+        }
         case ID_OutputName: {
-            _outputName->SetPath( RemoveFileExtension( event.GetPath().ToStdString() ) );
+            _outputName->SetPath( RemoveFileExtension( path ) );
             break;
         }
     }

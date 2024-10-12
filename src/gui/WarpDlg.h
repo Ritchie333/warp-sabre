@@ -48,6 +48,7 @@ private:
     void OnButton( wxCommandEvent& event );
     void OnFilePickerChanged( wxFileDirPickerEvent& event );
     void OnWarp();
+    void OnPointsFileChanged( const string& path );
 
     DECLARE_EVENT_TABLE()
 };
