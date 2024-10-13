@@ -61,8 +61,10 @@ GentilesDlg::GentilesDlg() :
     _startButton = new wxButton( this, ID_Start, _( "Start" ) );
     _clearButton = new wxButton( this, ID_Clear, _( "Clear" ) );
     _closeButton = new wxButton( this, wxID_CLOSE, ("Close" ) );
+    _abortButton = new wxButton( this, ID_Abort, ("Abort" ) );
+    SetUIRunning( false );
     AddGroup( topSizer, new wxButton( this, ID_About, _( "About" ) ),
-        _startButton, _clearButton, _closeButton, nullptr );
+        _startButton, _clearButton, _abortButton, _closeButton, nullptr );
 
     SetSizerAndFit( topSizer );
 }
@@ -82,6 +84,16 @@ bool GentilesDlg::ValidateZoom( const wxString& type, const wxTextCtrl* zoom )
     return true;
 }
 
+void GentilesDlg::Abort()
+{
+    if( _thread ) {
+        _runner.Abort();
+        _thread->Wait();
+        _thread->Delete();
+        _thread = nullptr;
+    }
+}
+
 void GentilesDlg::OnButton( wxCommandEvent& event )
 {
     const int id = event.GetId();
@@ -90,12 +102,7 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
             PrintVersion(); 
             break;
         case wxID_CLOSE :
-            if( _thread ) {
-                _runner.Abort();
-                _thread->Wait();
-                _thread->Delete();
-                _thread = nullptr;
-            }
+            Abort();
             Destroy();
             break;
         case ID_Start :
@@ -118,12 +125,14 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
             }
             _runner.maxTilesLoaded = _runner.inputFiles.size();
 
-            _startButton->Disable();
-            _clearButton->Disable();
+            SetUIRunning( true );
 
             _thread = new GentilesThread( this, _runner );
             _thread->source = id;
             _thread->Run();
+            break;
+        case ID_Abort : 
+            Abort();
             break;
         case ID_InputFilesBrowse :
             wxFileDialog openFileDialog( this, _( "Open KML file" ), wxEmptyString, wxEmptyString,
@@ -141,6 +150,13 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
     }
 }
 
+void GentilesDlg::SetUIRunning( const bool running )
+{
+    _startButton->Enable( !running );
+    _clearButton->Enable( !running );
+    _abortButton->Enable( running );
+}
+
 void GentilesDlg::OnLog( wxCommandEvent& event )
 {
     if( _output.size() > 0 ) {
@@ -156,8 +172,7 @@ void GentilesDlg::OnTilesEnd( wxCommandEvent& /*event*/ )
     _progressBar->SetRange( _length );
     _percentage->SetLabel( _( "100%" ) );
     _thread = nullptr;
-    _startButton->Enable();
-    _clearButton->Enable();
+    SetUIRunning( false );
 }
 
 void GentilesDlg::OnProgress( wxCommandEvent& event )

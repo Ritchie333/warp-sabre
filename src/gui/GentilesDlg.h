@@ -31,6 +31,7 @@ enum
     ID_Percentage,
     ID_Start,
     ID_Clear,
+    ID_Abort,
     ID_About
 };
 
@@ -69,6 +70,7 @@ private:
     wxButton* _startButton;
     wxButton* _clearButton;
     wxButton* _closeButton;
+    wxButton* _abortButton;
 
     TileRunner _runner;
     GentilesThread* _thread;
@@ -84,6 +86,9 @@ private:
     void OnError( wxCommandEvent& event );
 
     bool ValidateZoom( const wxString& type, const wxTextCtrl* zoom );
+
+    void SetUIRunning( const bool running );
+    void Abort();
 
     DECLARE_EVENT_TABLE()
 
