@@ -94,6 +94,7 @@ void GentilesDlg::OnButton( wxCommandEvent& event )
                 _runner.Abort();
                 _thread->Wait();
                 _thread->Delete();
+                _thread = nullptr;
             }
             Destroy();
             break;
