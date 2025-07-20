@@ -307,7 +307,6 @@ void SplitGbosRef(string in, string &zone, long &easting, long &northing)
 
 void DrawCross(class ImgFrameBase &img, int x, int y, double r, double g, double b)
 {
-	cout << x << "," << y << endl;
 	for (int i = -10; i <= 10; i++)
 		for (int j = -10; j <= 10; j++)
 		{

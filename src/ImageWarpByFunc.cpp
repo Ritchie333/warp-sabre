@@ -1,10 +1,6 @@
 
 #include "ImageWarpByFunc.h"
 #include "Point.h"
-extern "C"
-{
-#include "libmorph/warp2.h"
-}
 #include <iostream>
 
 //************************************************************
@@ -12,10 +8,20 @@ extern "C"
 ImageWarpByFunc::ImageWarpByFunc( const int size ) :
 	xsize( size ), ysize( size )
 {
+	sx = new double[xsize * ysize];
+	sy = new double[xsize * ysize];
+	ex = new double[xsize * ysize];
+	ey = new double[xsize * ysize];
+	slabel = new MESHLABEL_T[xsize * ysize];
 }
 
 ImageWarpByFunc::~ImageWarpByFunc()
 {
+	delete slabel;
+	delete ey;
+	delete ex;
+	delete sy;
+	delete sx;
 }
 
 int ImageWarpByFunc::Warp(class ImgMagick &in,
@@ -30,10 +36,6 @@ int ImageWarpByFunc::Warp(class ImgMagick &in,
 	unsigned char *outBuf = (unsigned char *)out.GetInternalDataConst();
 
 	// Calculate mesh transform
-	double sx[xsize * ysize], sy[xsize * ysize];
-	double ex[xsize * ysize], ey[xsize * ysize];
-	MESHLABEL_T slabel[xsize * ysize];
-
 	double sxmin = -0.0 * (double)in.GetWidth();
 	double sxmax = 1.0 * (double)in.GetWidth();
 	double symin = -0.0 * (double)in.GetHeight();
@@ -76,6 +78,5 @@ int ImageWarpByFunc::Warp(class ImgMagick &in,
 	warp_image_a_m(inBuf, in.GetWidth(), in.GetHeight(), in.GetNumChannels(), in.GetWidth() * in.GetNumChannels(), in.GetNumChannels(),
 				   outBuf, out.GetWidth(), out.GetHeight(), out.GetNumChannels(), out.GetWidth() * out.GetNumChannels(), out.GetNumChannels(),
 				   &startMesh, &endMesh);
-
 	return 1;
 }

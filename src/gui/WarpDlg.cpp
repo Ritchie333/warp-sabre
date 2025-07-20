@@ -11,6 +11,7 @@ using namespace std;
 
 BEGIN_EVENT_TABLE(WarpDlg, BaseDlg)
     EVT_BUTTON(wxID_ANY, WarpDlg::OnButton)
+    EVT_CHECKBOX(ID_Vis, WarpDlg::OnVisChecked)
     EVT_FILEPICKER_CHANGED(wxID_ANY, WarpDlg::OnFilePickerChanged)
 END_EVENT_TABLE()
 
@@ -30,12 +31,14 @@ WarpDlg::WarpDlg() :
     _polynomialOrder = PopulatePolynomialOrder();
     _name = new wxTextCtrl( this, ID_FolderName, wxEmptyString, wxDefaultPosition, wxSize( DESC_WIDTH, -1 ) );
     _description = new wxTextCtrl( this, ID_Description, wxEmptyString, wxDefaultPosition, wxSize( DESC_WIDTH, -1 ) );
+    _vis = new wxCheckBox( this, ID_Vis, wxEmptyString );
 
     AddLine( topSizer, _inputFile, _( "Input file " ) );
     AddLine( topSizer, _pointsFile, _( "Points file" ) );
     AddLine( topSizer, _outputName, _( "Output name" ) );
     AddLine( topSizer, _projectionType, _( "Projection type" ) );
     AddLine( topSizer, _polynomialOrder, _( "Polynomial order" ) );
+    AddLine( topSizer, _vis, _( "Visualise errors") );
     AddLine( topSizer, _name, _( "Map name" ) );
     AddLine( topSizer, _description, _( "Description") );
 
@@ -206,4 +209,9 @@ void WarpDlg::OnFilePickerChanged( wxFileDirPickerEvent& event )
             break;
         }
     }
+}
+
+void WarpDlg::OnVisChecked(wxCommandEvent& event)
+{
+    _warp.visualiseErrors = _vis->GetValue();
 }

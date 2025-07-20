@@ -3,6 +3,7 @@
 
 #include <wx/wx.h>
 #include <wx/choice.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/filepicker.h>
 #include <wx/sizer.h>
@@ -21,6 +22,7 @@ enum
     ID_Description,
     ID_Warp,
     ID_Test,
+    ID_Vis,
     ID_Warp_Dlg,
     ID_About
 };
@@ -38,6 +40,7 @@ private:
     wxChoice* _polynomialOrder;
     wxTextCtrl* _name;
     wxTextCtrl* _description;
+    wxCheckBox* _vis;
 
     Warp _warp;
     WarpProgressDialog _progressDialog;
@@ -49,6 +52,7 @@ private:
     void OnFilePickerChanged( wxFileDirPickerEvent& event );
     void OnWarp();
     void OnPointsFileChanged( const string& path );
+    void OnVisChecked(wxCommandEvent& event);
 
     DECLARE_EVENT_TABLE()
 };
