@@ -12,7 +12,7 @@ add_compile_options(-DUSE_MT_GENTILES)
 add_compile_options(-Wall)
 add_compile_options(-DWARP_SABRE_VERSION=${WARP_SABRE_VERSION})
 
-find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(Boost REQUIRED COMPONENTS thread)
 find_package(LibXml2 REQUIRED)
 
 include_directories(${LIBXML2_INCLUDE_DIR})
@@ -139,7 +139,6 @@ target_link_libraries( warp
     PRIVATE ImageMagick::MagickWand
     PRIVATE xml2
     PRIVATE Boost::thread
-    PRIVATE Boost::system
     PRIVATE morph
     PRIVATE newmat
     PRIVATE warp-conversion
