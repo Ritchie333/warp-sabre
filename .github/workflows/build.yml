@@ -61,7 +61,7 @@ jobs:
         mkdir warp-sabre/bin
         mkdir warp-sabre/lib
         cp build/*.exe AUTHORS COPYING INSTALL README \
-          /ucrt64/bin/{libgcc_s_seh-1,libwinpthread-1,libintl-8,libxml2-2,libMagickCore-7.Q16HDRI-10,libMagickWand-7.Q16HDRI-10,libstdc++-6,libboost_thread-mt,libgomp-1,libiconv-2}.dll \
+          /ucrt64/bin/{libgcc_s_seh-1,libwinpthread-1,libintl-8,libxml2-16,libMagickCore-7.Q16HDRI-10,libMagickWand-7.Q16HDRI-10,libstdc++-6,libboost_thread-mt,libgomp-1,libiconv-2}.dll \
           /ucrt64/bin/{liblzma-5,libbz2-1,libfftw3-3,libfontconfig-1,libfreetype-6,liblcms2-2,liblqr-1-0,libltdl-7,libraqm-0,libexpat-1,libbrotlidec,libbrotlicommon}.dll \
           /ucrt64/bin/{libharfbuzz-0,libglib-2.0-0,libpcre2-8-0,libgraphite2,libjpeg-8,libpng16-16,zlib1,libfribidi-0}.dll \
           warp-sabre/bin
