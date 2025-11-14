@@ -3,6 +3,8 @@
 #define IMG_MAGICK_H
 
 #include "ImgFrameBase.h"
+#include <string>
+using namespace std;
 #define IMG_FRAME_TYPE_MAGICKWAND 101
 
 class ImgMagick : public ImgFrameBase
@@ -18,6 +20,8 @@ public:
 	virtual void Clear();
 	virtual void Close();
 	virtual int Ready() const;
+
+	virtual const string GetLastError() const;
 
 	// Pixel data
 	virtual double GetPix(int x, int y, unsigned int channel) const;
@@ -44,6 +48,7 @@ protected:
 	int height;
 	int width;
 	int channels;
+	string lastError;
 
 private:
 	// Don't allow copying as there is a large amount of allocated data

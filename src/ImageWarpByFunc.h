@@ -4,6 +4,11 @@
 #include "ImgMagick.h"
 #include "Point.h"
 
+extern "C"
+{
+#include "libmorph/warp2.h"
+}
+
 class ImageWarpByFunc
 {
 public:
@@ -19,6 +24,13 @@ public:
 			 void *userPtr);
 
 	const int xsize, ysize;
+
+	double* sx;
+	double* sy;
+	double* ex;
+	double* ey;
+	MESHLABEL_T* slabel;	
+
 };
 
 #endif // IMAGE_WARP_BY_FUNC_H

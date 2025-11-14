@@ -130,7 +130,7 @@ void PrintMatrixP(Matrix &m)
 	}
 }
 
-vector<double> PolyProjection::Estimate()
+vector<double> PolyProjection::Estimate( Log* logger )
 {
 	if (originalPoints.size() != transformedPoints.size())
 		ThrowError<logic_error>("Inconsistent number of points in constraints", __LINE__, __FILE__);
@@ -174,20 +174,24 @@ vector<double> PolyProjection::Estimate()
 		}
 
 		// Project input to check for accuracy
-		cout << "Projection accuracy check" << endl;
+		logger->Add( "Projection accuracy check" );
 		double totalError = 0.0, totalCount = 0.0;
 		for (unsigned int i = 0; i < originalPoints.size(); i++)
 		{
 			Point proj = PolyProject(originalPoints[i], out, order);
-			cout << originalPoints[i].x << "," << originalPoints[i].y << "\t";
-			cout << transformedPoints[i].x << "," << transformedPoints[i].y << "\t";
-			cout << proj.x << "," << proj.y << "\t";
+			stringstream plot;
+			plot << originalPoints[i].x << "," << originalPoints[i].y << "\t";
+			plot << transformedPoints[i].x << "," << transformedPoints[i].y << "\t";
+			plot << proj.x << "," << proj.y << "\t";
 			double diff = pow(pow(transformedPoints[i].x - proj.x, 2.0) + pow(transformedPoints[i].y - proj.y, 2.0), 0.5);
-			cout << diff << endl;
+			plot << diff;
+			logger->Add( plot.str() );
 			totalError += diff;
 			totalCount++;
 		}
-		cout << "Average pixel error " << totalError / totalCount << " units" << endl;
+		stringstream summary;
+		summary << "Average pixel error " << totalError / totalCount << " units";
+		logger->Add( summary.str() );
 
 		return out;
 	}
@@ -303,7 +307,6 @@ void SplitGbosRef(string in, string &zone, long &easting, long &northing)
 
 void DrawCross(class ImgFrameBase &img, int x, int y, double r, double g, double b)
 {
-	cout << x << "," << y << endl;
 	for (int i = -10; i <= 10; i++)
 		for (int j = -10; j <= 10; j++)
 		{

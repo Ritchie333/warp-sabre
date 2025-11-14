@@ -8,6 +8,20 @@
 #include <vector>
 using namespace std;
 
+const char* Warp::ProjectionNames[] = {
+		"osgb",
+		"mercator",
+		"cassini",
+		"bonnes",
+		"bonnei",
+		"bonnef",
+		"osi",
+		"wo",
+		"woi",
+		"osgby",
+		NULL
+	};
+
 Warp::Warp()
 {
     polynomialOrder = -1; //-1 is auto select
@@ -19,6 +33,7 @@ Warp::Warp()
     outputWidth = -1;
     outputHeight = -1;
     projType = PolyProjectArgs::OSGB;
+	logger = nullptr;
 }
 
 int Warp::Run()
@@ -28,12 +43,14 @@ int Warp::Run()
 	//{cout << "Error: input sequence must be specified" << endl << desc << endl; exit(0);
 
 	class Tile tile;
-	cout << "Loading image..." << endl;
+	logger->Add( "Loading image..." );
 	class ImgMagick img;
 	int openRet = img.Open(inputImageFilename.c_str());
 	if (openRet < 0)
 	{
-		cout << "open " << inputImageFilename << " failed" << endl;
+		stringstream line;
+		line << "open " << inputImageFilename << " failed";
+		logger->Add( line.str() );
 		return -1;
 	}
     int outputWidth = -1;
@@ -48,7 +65,9 @@ int Warp::Run()
 	class CalibrationFile pointDef;
 	if (pointDef.Open(inputPointsFilename.c_str()) < 0)
 	{
-		cout << "File not found" << inputPointsFilename << endl;
+		stringstream line;
+		line << "File not found" << inputPointsFilename;
+		logger->Add( line.str() );
 		return -1;
 	}
 
@@ -57,6 +76,7 @@ int Warp::Run()
 	pointDef.gbosOut = gbosOut;
 	pointDef.corners = corners;
 	pointDef.projType = projType;
+	pointDef.logger = logger;
 	pointDef.ReadProjection();
 	
 	tile.latmin = pointDef.south;
@@ -70,12 +90,15 @@ int Warp::Run()
 	if (polynomialOrder == -1)
 	{
 		polynomialOrder = CalcOrderFitForNumConstraints(2 * srcImgToRef.originalPoints.size());
-		cout << "Using " << polynomialOrder << "th order polynomial (" << srcImgToRef.originalPoints.size() << " points)" << endl;
-		cout << "Need to determine " << CoeffSize(polynomialOrder) << " coeffs" << endl;
+		stringstream line;
+		line << "Using " << polynomialOrder << "th order polynomial (" << srcImgToRef.originalPoints.size() << " points)";
+		logger->Add( line.str() );
+		line << "Need to determine " << CoeffSize(polynomialOrder) << " coeffs";
+		logger->Add( line.str() );
 	}
 
 	pointDef.proj.order = polynomialOrder;
-	vector<double> poly = srcImgToRef.Estimate();
+	vector<double> poly = srcImgToRef.Estimate( logger );
 
 	double coordWidth = tile.lonmax - tile.lonmin;
 	double coordHeight = tile.latmax - tile.latmin;
@@ -87,8 +110,17 @@ int Warp::Run()
 		if (tile.sy < coordHeight * tile.sx / coordWidth)
 			tile.sy = coordHeight * tile.sx / coordWidth;
 	}
-	cout << "Output image size " << tile.sx << " by " << tile.sy << " px" << endl;
-	cout << "Output coordinates size " << coordWidth << " by " << coordHeight << endl;
+	{
+		stringstream line;
+		line << "Output image size " << tile.sx << " by " << tile.sy << " px";
+		logger->Add( line.str() );
+	}
+
+	{
+		stringstream line;
+		line << "Output coordinates size " << coordWidth << " by " << coordHeight;
+		logger->Add( line.str() );
+	}
 
 	if (fitOnly)
 		return 0;
@@ -111,7 +143,7 @@ int Warp::Run()
 	args.ptile = &tile;
 	args.order = polynomialOrder;
 	args.mercatorOut = mercatorOut;
-	cout << "Warping image..." << endl;
+	logger->Add( "Warping image..." );
 	imageWarpByFunc.Warp(img, endImage, PolyProjectWithPtr, (void *)&args);
 
 	if (visualiseErrors)
@@ -127,7 +159,7 @@ int Warp::Run()
 			DrawCross(endImage, srcImgToRef.originalPoints[i].x, srcImgToRef.originalPoints[i].y, 0, 0, 255);
 		}
 
-	cout << "Saving image..." << endl;
+	logger->Add( "Saving image..." );
 	string mapOutFilename = outputFilename + ".jpg";
 	endImage.Save(mapOutFilename.c_str());
 
@@ -141,12 +173,25 @@ int Warp::Run()
 		writeKml.south = tile.latmin;
 		writeKml.west = tile.lonmin;
 		writeKml.east = tile.lonmax;
-		writeKml.description = kmlName; 
+		writeKml.folderName = kmlName;
+		writeKml.description = kmlDesc; 
 		string kmlOutFilename = outputFilename + ".kml";
 		writeKml.href = mapOutFileNoPath;
-		cout << "Writing KML to " << kmlOutFilename << endl;
+		stringstream line;
+		line << "Writing KML to " << kmlOutFilename;
+		logger->Add( line.str() );
 		writeKml.WriteToFile(kmlOutFilename.c_str());
 	}
 
 	return 1;
+}
+
+void Warp::ProjTypeFromName( const string& input  )
+{
+	for( int i = 0; ProjectionNames[i] ; i++ ) {
+		if( input == ProjectionNames[i] ) {
+			projType = ( PolyProjectArgs::ProjType) i;
+            break;
+		}
+	}
 }

@@ -2,8 +2,8 @@
 #define IMGFRAMEBASE_H_
 
 #include <stdlib.h>
-// #include <iostream>
-// using namespace std;
+#include <string>
+using namespace std;
 
 #define IMG_FRAME_TYPE_UNKNOWN 0
 #define IMG_FRAME_TYPE_CIMG_DOUBLE 1
@@ -39,6 +39,8 @@ public:
 
 	virtual int Open(const char *filename) = 0; // {return -1;};
 	virtual int Create( const ImgFrameBase* src = 0) = 0;
+
+	virtual const string GetLastError() const = 0;
 
 	// Pixel data
 	virtual double GetPix(int x, int y, unsigned int channel) const = 0;

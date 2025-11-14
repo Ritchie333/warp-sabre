@@ -86,6 +86,8 @@ int main(int argc, char **argv)
 	tileRun.minZoom = minZoom;
 	tileRun.maxZoom = maxZoom;
 	tileRun.outFolder = outFolder;
+	class Log logger;
+	tileRun.logger = &logger;
 
 	tileRun.Init();
 	tileRun.Clear();

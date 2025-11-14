@@ -7,14 +7,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(ImageMagick REQUIRED COMPONENTS MagickWand)
 include_directories(${ImageMagick_INCLUDE_DIRS})
 add_compile_options(${ImageMagick_COMPILE_OPTIONS})
+find_package(wxWidgets REQUIRED COMPONENTS core base)
 add_compile_options(-DUSE_MT_GENTILES)
 add_compile_options(-Wall)
 add_compile_options(-DWARP_SABRE_VERSION=${WARP_SABRE_VERSION})
 
 find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Boost REQUIRED COMPONENTS thread)
 find_package(LibXml2 REQUIRED)
 
 include_directories(${LIBXML2_INCLUDE_DIR})
+include(${wxWidgets_USE_FILE})
 
 add_library(morph STATIC
     src/libmorph/my_malloc.c
@@ -61,67 +64,94 @@ add_library(warp-conversion STATIC
     src/gbos1936/Gbos1936.cpp
 )
 
-add_executable(warp-sabre
+add_library(warp STATIC
     src/CalibrationFile.cpp
+    src/CopyPixels.cpp
+    src/GetBounds.cpp
     src/ImageWarpByFunc.cpp
     src/ImgMagick.cpp
+    src/Log.cpp
     src/ReadDelimitedFile.cpp
     src/ProgramOptions.cpp
+    src/ReadKmlFile.cpp
+    src/SlippyMapTile.cpp
+    src/SourceKml.cpp
     src/StringUtils.cpp
     src/Tile.cpp
+    src/TileJob.cpp
     src/TransformPoly.cpp
     src/Warp.cpp
-    src/WarpOs.cpp
     src/WriteKml.cpp
 )
 
+add_executable(warp-sabre
+    src/WarpOs.cpp
+)
+
 add_executable(gentiles
-    src/CopyPixels.cpp
     src/GenTiles.cpp
-    src/GetBounds.cpp
-    src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ProgramOptions.cpp
-    src/ReadDelimitedFile.cpp
-    src/ReadKmlFile.cpp
-    src/SlippyMapTile.cpp
-    src/SourceKml.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/TileJob.cpp
 )
 
 add_executable(cleartiles
-    src/CopyPixels.cpp
     src/ClearTiles.cpp
-    src/GetBounds.cpp
-    src/ImageWarpByFunc.cpp
-    src/ImgMagick.cpp
-    src/ProgramOptions.cpp
-    src/ReadDelimitedFile.cpp
-    src/ReadKmlFile.cpp
-    src/SlippyMapTile.cpp
-    src/SourceKml.cpp
-    src/StringUtils.cpp
-    src/Tile.cpp
-    src/TileJob.cpp
 )
 
 add_executable(testcas
     src/TestCas.cpp
 )
 
-target_include_directories(warp-sabre PUBLIC
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    enable_language("RC")
+    add_executable(warp-sabre-gui WIN32 
+        src/gui/BaseDlg.cpp
+        src/gui/WarpDlg.cpp
+        src/gui/WarpGui.cpp
+        src/gui/WarpProgressDlg.cpp
+        src/gui/windows/sabre.rc
+    )
+    add_executable(gentiles-gui WIN32
+        src/gui/BaseDlg.cpp
+        src/gui/GentilesDlg.cpp
+        src/gui/GentilesGui.cpp
+        src/gui/windows/sabre.rc
+)
+else()
+
+    add_executable(warp-sabre-gui
+        src/gui/BaseDlg.cpp
+        src/gui/WarpDlg.cpp
+        src/gui/WarpGui.cpp
+        src/gui/WarpProgressDlg.cpp
+    )
+
+    add_executable(gentiles-gui
+        src/gui/BaseDlg.cpp
+        src/gui/GentilesDlg.cpp
+        src/gui/GentilesGui.cpp
+    )
+endif()
+
+target_include_directories(warp PUBLIC
     ${PROJECT_SOURCE_DIR}/libmorph
     ${PROJECT_SOURCE_DIR}/newmat-10
 )
 
-target_link_libraries(warp-sabre
+target_link_libraries( warp
     PRIVATE ImageMagick::MagickWand
-    PRIVATE Boost::system
+    PRIVATE xml2
+    PRIVATE Boost::thread
     PRIVATE morph
     PRIVATE newmat
     PRIVATE warp-conversion
+)
+
+target_link_libraries(warp-sabre
+    PRIVATE warp
+)
+
+target_link_libraries(warp-sabre-gui
+    PRIVATE warp
+    PRIVATE ${wxWidgets_LIBRARIES}
 )
 
 target_include_directories(gentiles PUBLIC
@@ -129,12 +159,12 @@ target_include_directories(gentiles PUBLIC
 )
 
 target_link_libraries(gentiles
-    PRIVATE ImageMagick::MagickWand
-    PRIVATE xml2
-    PRIVATE Boost::thread
-    PRIVATE Boost::system
-    PRIVATE morph
-    PRIVATE warp-conversion
+    PRIVATE warp
+)
+
+target_link_libraries(gentiles-gui
+    PRIVATE warp
+    PRIVATE ${wxWidgets_LIBRARIES}
 )
 
 target_include_directories(cleartiles PUBLIC
@@ -142,12 +172,7 @@ target_include_directories(cleartiles PUBLIC
 )
 
 target_link_libraries(cleartiles
-    PRIVATE ImageMagick::MagickWand
-    PRIVATE xml2
-    PRIVATE Boost::thread
-    PRIVATE Boost::system
-    PRIVATE morph
-    PRIVATE warp-conversion
+    PRIVATE warp
 )
 
 target_link_libraries(testcas

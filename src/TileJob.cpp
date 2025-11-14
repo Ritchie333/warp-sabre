@@ -73,8 +73,11 @@ void TileJob::operator()()
 	}
 	catch (int e)
 	{
-		if (verbose >= 1)
-			cout << "Error: render failed (" << e << ")" << endl;
+		if (verbose >= 1) {
+			stringstream output;
+			output << "Error: render failed (" << e << ")";
+			runner->logger->Add( output.str() );
+		}
 	}
 
 	this->originalObj->running = 0;
@@ -87,7 +90,7 @@ int TileJob::Render()
 
 	if (srcPtr == NULL)
 	{
-		cout << "Error: Bad srcPtr pointer" << endl;
+		runner->logger->Add( "Error: Bad srcPtr pointer" );
 		throw(4000);
 	}
 	class SourceKml* src = srcPtr;
@@ -113,33 +116,46 @@ int TileJob::Render()
 		if (countSrcTilesUsed == 1)
 		{
 			if (verbose >= 2)
-				cout << "Generating tile " << this->tileLon << "," << this->tileLat << endl;
+			{
+				stringstream output;
+				output << "Generating tile " << this->tileLon << "," << this->tileLat;
+				runner->logger->Add( output.str() );
+			}
 			if (verbose >= 2)
-				cout << "Tile area " << this->dst.latmin << "," << this->dst.lonmin << "," << this->dst.latmax << "," << this->dst.lonmax << endl;
+			{
+				stringstream output;
+				output << "Tile area " << this->dst.latmin << "," << this->dst.lonmin << "," << this->dst.latmax << "," << this->dst.lonmax;
+				runner->logger->Add( output.str() );
+			}
 		}
-		if (verbose >= 2)
-			cout << "Copying pixels from " << srcKml.imgFilename << endl;
+		if (verbose >= 2) {
+			stringstream output;
+			output << "Copying pixels from " << srcKml.imgFilename;
+			runner->logger->Add( output.str() );
+		}
 
 		// Check map is in memory
 		if (!srcKml.image.Ready())
 		{
 			if (enableTileLoading)
 			{
-				int status = RequestTileLoading(src, size, srcKml, this->maxTilesLoaded);
+				int status = runner->RequestTileLoading(src, size, srcKml, this->maxTilesLoaded);
 				if (status == 0)
 				{
 					this->originalObj->complete = 1;
 					this->originalObj->running = 0;
 					this->originalObj->failed = 1;
-					if (verbose >= 1)
-						cout << "Error: Could not load tile" << endl;
+					if (verbose >= 1) {
+						runner->logger->Add( "Error: Could not load tile" );
+					}
 					throw(1000);
 				}
 			}
 			else
 			{
-				if (verbose >= 1)
-					cout << "Error:Loading dep not satisfied" << endl;
+				if (verbose >= 1) {
+					runner->logger->Add( "Error:Loading dep not satisfied" );
+				}
 				this->originalObj->complete = 1;
 				this->originalObj->running = 0;
 				this->originalObj->failed = 1;
@@ -234,7 +250,7 @@ int TileJob::Render()
 	return 1;
 }
 
-int TileJob::RequestTileLoading(class SourceKml*src, const size_t size, class SourceKml &toLoad, int maxTilesLoaded)
+int TileRunner::RequestTileLoading(class SourceKml*src, const size_t size, class SourceKml &toLoad, int maxTilesLoaded)
 {
 	// Touch this timer to prevent it being unloaded straight away
 	accessTimeLock.lock(); // Reset timer
@@ -251,7 +267,11 @@ int TileJob::RequestTileLoading(class SourceKml*src, const size_t size, class So
 	for (unsigned int i = 0; i < size; i++)
 		if (src[i].image.Ready())
 			count++;
-	cout << "Currently " << count << " tiles in memory" << endl;
+	{
+		stringstream output;
+		output << "Currently " << count << " tiles in memory";
+		logger->Add( output.str() );
+	}
 
 	clock_t lowTime = 0;
 	int lowTimeSet = 0;
@@ -260,7 +280,7 @@ int TileJob::RequestTileLoading(class SourceKml*src, const size_t size, class So
 	{
 		if (count >= maxTilesLoaded + 2)
 		{
-			cout << "Failing..... too many tiles loaded in memory" << endl;
+			logger->Add( "Failing..... too many tiles loaded in memory" );
 			return 0;
 		}
 
@@ -284,12 +304,14 @@ int TileJob::RequestTileLoading(class SourceKml*src, const size_t size, class So
 		// Unload tile
 		if (lowIndex != -1)
 		{
-			cout << "Unloading " << src[lowIndex].imgFilename << endl;
+			stringstream output;
+			output << "Unloading " << src[lowIndex].imgFilename;
+			logger->Add( output.str() );
 			src[lowIndex].image.Clear();
 		}
 		else
 		{
-			cout << "Failed to find a tile to unload" << endl;
+			logger->Add( "Failed to find a tile to unload" );
 			return 0;
 		}
 
@@ -301,16 +323,22 @@ int TileJob::RequestTileLoading(class SourceKml*src, const size_t size, class So
 	}
 
 	// Load required tile into mem
-	cout << "Loading " << toLoad.imgFilename << "...";
-	cout.flush();
+	{
+		stringstream output;
+		output << "Loading " << toLoad.imgFilename << "...";
+		logger->Add( output.str() );
+	}
 	int ret = toLoad.image.Open(toLoad.imgFilename.c_str());
 	if (ret < 0)
 	{
-		cout << "Failed to open image " << toLoad.imgFilename << endl;
+		stringstream output;
+		output << "Failed to open image " << toLoad.imgFilename << " " << toLoad.image.GetLastError();
+		logger->Add( output.str() );
 		return 0;
 	}
-	else
-		cout << "done" << endl;
+	else {
+		logger->Add( "   ... done" );
+	}
 	toLoad.tile.sx = toLoad.image.GetWidth();
 	toLoad.tile.sy = toLoad.image.GetHeight();
 
@@ -356,7 +384,9 @@ const int TileJob::TargetThreads()
 
 
 TileRunner::TileRunner( const int numThreads ) :
+	running( false ),
 	semaphore( numThreads )
+	
 {
 	src = NULL;
 }
@@ -366,11 +396,14 @@ TileRunner::~TileRunner()
     delete[] src;
 }
     
-void TileRunner::Init()
+int TileRunner::Init()
 {
     int boundsOpen = boundsFile.Open(boundsFilename.c_str());
-	if (boundsOpen < 1)
-		cout << "Could not read " << boundsOpen << " file" << endl;
+	if (boundsOpen < 1) {
+		stringstream output;
+		output << "Could not read " << boundsOpen << " file";
+		logger->Add( output.str() );
+	}
 
     src = new SourceKml[ inputFiles.size() ];
 
@@ -380,7 +413,11 @@ void TileRunner::Init()
 
 	for (unsigned int i = 0; i < inputFiles.size(); i++)
 	{
-		cout << "Source file '" << inputFiles[i] << "'" << endl;
+		{
+			stringstream output;
+			output << "Source file '" << inputFiles[i] << "'";
+			logger->Add( output.str() );
+		}
 		string filePath = GetFilePath(inputFiles[i].c_str());
 
 		class SourceKml &last = src[i];
@@ -392,11 +429,19 @@ void TileRunner::Init()
 		last.imgFilename += imgFilename;
 		if (ret < 1)
 		{
-			cout << "Kml " << last.kmlFilename << " not found";
-			exit(0);
+			stringstream output;
+			output << "Kml " << last.kmlFilename << " not found";
+			logger->Add( output.str() );
+			return(0);
 		}
-		cout << last.tile.latmin << "," << last.tile.lonmin << "," << last.tile.latmax << "," << last.tile.lonmax << endl;
-		cout << "image filename '" << last.imgFilename << "'" << endl;
+		{
+			stringstream output;
+			output << last.tile.latmin << "," << last.tile.lonmin << "," << last.tile.latmax << "," << last.tile.lonmax;
+			logger->Add( output.str() );
+			output.clear();
+			output << "image filename '" << last.imgFilename << "'";
+			logger->Add( output.str() );
+		}
 
 		// Update source bounding box
 		if (sourceBBox.latmin > last.tile.latmin || !sourceBBoxSet)
@@ -418,14 +463,21 @@ void TileRunner::Init()
 		string projType;
 		GetBounds(boundsFile, filenameNoPath.c_str(), boundsTemp, projType);
 
-		cout << "bounds (" << boundsTemp.size() << ")";
+		{
+			stringstream output;
+			output << "bounds (" << boundsTemp.size() << ")";
+			logger->Add( output.str() );
+		}
+		
 		if (boundsTemp.size() > 0)
 		{
 			last.bounds = boundsTemp;
 			last.projType = projType;
-			for (unsigned int j = 0; j < boundsTemp.size(); j++)
-				cout << projType << " : " << boundsTemp[j] << ",";
-			cout << endl;
+			stringstream output;
+			for (unsigned int j = 0; j < boundsTemp.size(); j++) {
+				output << projType << " : " << boundsTemp[j] << ",";
+			}
+			logger->Add( output.str() );
 		}
 		else
 		{
@@ -436,14 +488,21 @@ void TileRunner::Init()
 			last.bounds.push_back(tl.str());
 			last.bounds.push_back(br.str());
 			last.projType = "M";
-			cout << last.projType << " : " << tl.str() << "," << br.str() << endl;
+			stringstream output;
+			output << last.projType << " : " << tl.str() << "," << br.str();
+			logger->Add( output.str() );
 		}
 
 		last.CreateCopyPixelsObj();
 	}
 
-    cout << "Input files bounding box:" << endl;
-	cout << sourceBBox.latmin << "," << sourceBBox.lonmin << "," << sourceBBox.latmax << "," << sourceBBox.lonmax << endl;
+    logger->Add( "Input files bounding box:" );
+	{
+		stringstream output;
+		output << sourceBBox.latmin << "," << sourceBBox.lonmin << "," << sourceBBox.latmax << "," << sourceBBox.lonmax;
+		logger->Add( output.str() );
+	}
+	
 
 	// Read the zoom limits from a file
 	map<string, int> zoomLimitMax, zoomLimitMin;
@@ -470,11 +529,13 @@ void TileRunner::Init()
 		map<string, int>::iterator it = zoomLimitMax.find(chkStr);
 		if (it != zoomLimitMax.end())
 		{
-			cout << "Max zoom for " << chkStr << " is " << it->second << endl;
+			stringstream output;
+			output << "Max zoom for " << chkStr << " is " << it->second;
+			logger->Add( output.str() );
 			srcKml.maxZoomVisible = it->second;
 		}
 	}
-
+	return 1;
 }
 
 void TileRunner::SetupTileJobs()
@@ -483,17 +544,28 @@ void TileRunner::SetupTileJobs()
 	//** Calculate tile jobs to do
 	//************************************
 	
+	running = true;
+
 	for (unsigned int zoom = minZoom; zoom <= maxZoom; zoom++)
 	{
 		int srcWtile = long2tile(sourceBBox.lonmin, zoom);
 		int srcEtile = long2tile(sourceBBox.lonmax, zoom);
 		int srcStile = lat2tile(sourceBBox.latmin, zoom);
 		int srcNtile = lat2tile(sourceBBox.latmax, zoom);
-		cout << "Planning zoom " << zoom << ", tiles covered " << srcStile << "," << srcWtile << "," << srcNtile << "," << srcEtile << endl;
+
+		{
+			stringstream output;
+			output << "Planning zoom " << zoom << ", tiles covered " << srcStile << "," << srcWtile << "," << srcNtile << "," << srcEtile;
+			logger->Add( output.str() );
+		}
 
 		for (int tileLon = srcWtile; tileLon <= srcEtile; tileLon++)
 			for (int tileLat = srcNtile; tileLat <= srcStile; tileLat++)
 			{
+				if( !running ) {
+					return;
+				}
+
 				class TileJob job( this );
 
 				string outFilename = outFolder;
@@ -511,7 +583,9 @@ void TileRunner::SetupTileJobs()
 				int skipExistingTiles = 1;
 				if (fileExists(outFilename.c_str()) && skipExistingTiles)
 				{
-					cout << "Already exists: " << outFilename << endl;
+					stringstream output;
+					output << "Already exists: " << outFilename;
+					logger->Add( output.str() );
 					continue;
 				}
 
@@ -584,7 +658,7 @@ void TileRunner::SetupTileJobs()
 
 void TileRunner::RunTileJobs()
 {
-    int running = 1;
+    running = true;
 	int renderCount = 0;
 	while (running)
 	{
@@ -607,10 +681,12 @@ void TileRunner::RunTileJobs()
 			}
 		}
 
-		cout << "Most complex dep (";
+		stringstream output;
+		output << "Most complex dep (";
 		for (unsigned int j = 0; j < maxDep.size(); j++)
-			cout << maxDep[j] << " ";
-		cout << ")" << endl;
+			output << maxDep[j] << " ";
+		output << ")";
+		logger->Add( output.str() );
 #ifdef USE_MT_GENTILES
 		int tilesLoadable = (maxDep.size() <= maxTilesLoaded);
 #else
@@ -647,25 +723,35 @@ void TileRunner::RunTileJobs()
 				jobsInDep.push_back(&job);
 		}
 
-		cout << "Tiles satisfied by this dep: " << jobsInDep.size() << endl;
+		{
+			stringstream output;
+			output << "Tiles satisfied by this dep: " << jobsInDep.size();
+			logger->Add( output.str() );
+		}
 
 		if (countRemaining == 0)
 		{
-			cout << "All done!" << endl;
-			running = 0;
+			logger->Add( "All done!" );
+			running = false;
 			continue;
 		}
 
-		cout << "tilesLoadable " << tilesLoadable << endl;
+		{
+			stringstream output;
+			output << "tilesLoadable " << tilesLoadable;
+			logger->Add( output.str() );
+		}
 		if (tilesLoadable)
 		{
 			// Load appropriate tiles for this dep
 			for (unsigned int t = 0; t < maxDep.size(); t++)
 			{
 				class SourceKml &toLoad = src[maxDep[t]];
-				int status = TileJob::RequestTileLoading(src, inputFiles.size(), toLoad, maxTilesLoaded);
-				if (status == 0)
-					exit(0);
+				int status = RequestTileLoading(src, inputFiles.size(), toLoad, maxTilesLoaded);
+				if (status == 0) {
+					running = false;
+					continue;
+				}
 			}
 		}
 
@@ -676,44 +762,59 @@ void TileRunner::RunTileJobs()
 		for (unsigned int jobNum = 0; jobNum < jobsInDep.size(); jobNum++)
 		{
 
-			class TileJob &job = *jobsInDep[jobNum];
-			renderCount++;
-			cout << "Render Tile " << renderCount << " of " << jobs.size() << " (in dep " << jobNum << " of " << jobsInDep.size() << ")" << endl;
-			cout << "Depends on KML srcs ";
-			for (unsigned int j = 0; j < job.kmlSrc.size(); j++)
-				cout << job.kmlSrc[j] << " ";
-			cout << endl;
+			if( running ) {
 
-			if (tilesLoadable) // Do processing in parallel
-			{
-				job.enableTileLoading = 0;
-				job.verbose = 1;
+				class TileJob &job = *jobsInDep[jobNum];
+				logger->Progress( ++renderCount );
+				{
+					stringstream output;
+					output << "Render Tile " << renderCount << " of " << jobs.size() << " (in dep " << jobNum << " of " << jobsInDep.size() << ")";
+					logger->Add( output.str() );
+				}
+				{
+					stringstream output;
+					output << "Depends on KML srcs ";
+					for (unsigned int j = 0; j < job.kmlSrc.size(); j++) {
+						output << job.kmlSrc[j] << " ";
+					}
+					logger->Add( output.str() );
+				}
 
-				semaphore.wait();
-				statusLock.lock();
-				boost::thread* newThread = new boost::thread(job);
-				threads[ newThread->get_id() ] = newThread;
-				statusLock.unlock();
-			}
-			else // Do processing in serial
-			{
-				job.enableTileLoading = 1;
-				job();
-				job.enableTileLoading = 0;
+				if (tilesLoadable) // Do processing in parallel
+				{
+					job.enableTileLoading = 0;
+					job.verbose = 1;
+
+					semaphore.wait();
+					statusLock.lock();
+					boost::thread* newThread = new boost::thread(job);
+					threads[ newThread->get_id() ] = newThread;
+					statusLock.unlock();
+				}
+				else // Do processing in serial
+				{
+					job.enableTileLoading = 1;
+					job();
+					job.enableTileLoading = 0;
+				}
 			}
 
 		} // End of job loop
 
 		// Wait for things to finish
-		cout << "Waiting for threads to finish...";
-		cout.flush();
+		logger->Add( "Waiting for threads to finish..." );
 		while( threads.size() > 0 ) {
 			threads.begin()->second->join();
 		}
-		cout << "done" << endl;
+		logger->Add( "done" );
 
 	} // End of dep depth loop
 
+}
+
+void TileRunner::Abort()
+{
+	running = false;
 }
 
 void TileRunner::EndThread( boost::thread::id threadId )
@@ -726,13 +827,17 @@ void TileRunner::EndThread( boost::thread::id threadId )
 	semaphore.post();	// One less thread
 }
 
+const int TileRunner::CountJobs() const
+{
+	return jobs.size();
+}
+
 const int TileRunner::CountFailures() const
 {
     // Count failures
 	int countFail = 0;
-	for (unsigned int jobNum = 0; jobNum < jobs.size(); jobNum++)
+	for (const class TileJob& job : jobs )
 	{
-		const class TileJob &job = jobs[jobNum];
 		if (job.originalObj->failed)
 			countFail++;
 	}
@@ -770,7 +875,9 @@ void TileRunner::Clear()
 
 				if (fileExists(outFilename.c_str()))
 				{
-					cout << "Deleting: " << outFilename << endl;
+					stringstream output;
+					output << "Deleting: " << outFilename;
+					logger->Add( output.str() );
 					remove(outFilename.c_str());
 				}
 

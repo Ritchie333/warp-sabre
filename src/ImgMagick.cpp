@@ -3,6 +3,7 @@
 #include <MagickWand/MagickWand.h>
 #include <string.h>
 #include <iostream>
+#include <sstream>
 using namespace std;
 
 void ImgMagick::Init()
@@ -74,7 +75,9 @@ int ImgMagick::Open(const char *filename)
 	if (!ret) {
 		ExceptionType severity;
 		char* error = MagickGetException( wand, &severity );
-		cout << severity << " " << error << endl;
+		stringstream output;
+		output << severity << " " << error;
+		lastError = output.str();
 		return -1;
 	}
 
@@ -116,15 +119,28 @@ int ImgMagick::Ready() const
 	return (raw != 0);
 }
 
+const string ImgMagick::GetLastError() const
+{
+	return lastError;
+}
+
 // Pixel data
 double ImgMagick::GetPix(int x, int y, unsigned int channel) const
 {
-	return raw[channel + x * channels + y * channels * width];
+	const long off = channel + x * channels + y * channels * width;
+	if( off < width * height * channels ) {
+		return raw[channel + x * channels + y * channels * width];
+	} else {
+		return 0;
+	}
 }
 
 void ImgMagick::SetPix(int x, int y, unsigned int channel, double val)
 {
-	raw[channel + x * channels + y * channels * width] = (char)(val + 0.5);
+	const long off = channel + x * channels + y * channels * width;
+	if( off < width * height * channels ) {
+		raw[channel + x * channels + y * channels * width] = (char)(val + 0.5);
+	}
 }
 
 // Meta data

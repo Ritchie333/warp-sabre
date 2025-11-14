@@ -17,7 +17,7 @@ string RemoveWhitespace(string str);
 string FilenameRemoveFrameNumAndExtension(string filename);
 string FilenameChangeNumber(string filename, int num);
 string GetFileExtension(string filename);
-string RemoveFileExtension(const char *filename);
+string RemoveFileExtension(const string& filename);
 string RemoveFilePath(const char *filename);
 string GetFilePath(const char *filename);
 int GetFileAsString(const char *filename, string &dataOut);
@@ -44,9 +44,9 @@ const string version( const char* pname );
 #define STR(x) #x
 
 #define DEFINE_VERSION(po)	\
-	if( po.HasArg( "version" )) { cout << version( argv[ 0 ] ) << endl;	exit(0); }
+	if( po.HasArg( "version" )) { cout << version( argv[ 0 ] ) << endl;	return 0; }
 
 #define DEFINE_HELP(po, desc) \
-	if (po.HasArg("help")) { cout << desc.str() << endl; exit(0); }
+	if (po.HasArg("help")) { cout << desc.str() << endl; return 0; }
 
 #endif // STRING_UTILS_H
