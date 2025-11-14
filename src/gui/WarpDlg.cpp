@@ -32,6 +32,7 @@ WarpDlg::WarpDlg() :
     _name = new wxTextCtrl( this, ID_FolderName, wxEmptyString, wxDefaultPosition, wxSize( DESC_WIDTH, -1 ) );
     _description = new wxTextCtrl( this, ID_Description, wxEmptyString, wxDefaultPosition, wxSize( DESC_WIDTH, -1 ) );
     _vis = new wxCheckBox( this, ID_Vis, wxEmptyString );
+    _warp.visualiseErrors = false;
 
     AddLine( topSizer, _inputFile, _( "Input file " ) );
     AddLine( topSizer, _pointsFile, _( "Points file" ) );
