@@ -9,6 +9,8 @@ using namespace std;
 #define IMG_FRAME_TYPE_CIMG_DOUBLE 1
 #define IMG_FRAME_TYPE_CIMG_DISPLAY 2
 
+typedef unsigned char CharPixelData;
+
 class ImgFrameBase
 {
 public:
@@ -43,8 +45,8 @@ public:
 	virtual const string GetLastError() const = 0;
 
 	// Pixel data
-	virtual double GetPix(int x, int y, unsigned int channel) const = 0;
-	virtual void SetPix(int x, int y, unsigned int channel, double val) {};
+	virtual const CharPixelData GetPix(int x, int y, unsigned int channel) const = 0;
+	virtual void SetPix(const int x, const int y, const unsigned int channel, const CharPixelData val) = 0;
 
 	// Meta data
 	virtual int GetWidth() const { return -1; };
@@ -56,7 +58,7 @@ public:
 	virtual int SetNumChannels(int val) { return -1; };
 
 	virtual int GetInternalImageType() const { return IMG_FRAME_TYPE_UNKNOWN; };
-	virtual const void *GetInternalDataConst() const { return 0; };
+	virtual const CharPixelData *GetInternalDataConst() const { return 0; };
 };
 
 class ImgFrameBaseUtils

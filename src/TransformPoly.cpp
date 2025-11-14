@@ -77,11 +77,6 @@ Point PolyProject(const Point& point, vector<double> pose, int order)
 	return Point(totx, toty);
 }
 
-/*vector<double> PolyUnProject(vector<double> point, vector<double>pose)
-{
-
-}*/
-
 //**********************************************************************
 
 PolyProjection::PolyProjection()
@@ -130,50 +125,54 @@ void PrintMatrixP(Matrix &m)
 	}
 }
 
-vector<double> PolyProjection::Estimate( Log* logger )
+vector<double> PolyProjection::GetPose()
+{
+	Matrix po((CoeffSize(order)), originalPoints.size());
+	for (unsigned int i = 0; i < originalPoints.size(); i++)
+	{
+		vector<double> coeff = GetCoeff(order, originalPoints[i].x, originalPoints[i].y);
+		for (unsigned int j = 0; j < coeff.size(); j++)
+		{
+			po(j + 1, i + 1) = coeff[j];
+		}
+	}
+	// PrintMatrixP(po);
+
+	Matrix pt(2, transformedPoints.size());
+	for (unsigned int i = 0; i < transformedPoints.size(); i++)
+	{
+		pt(1, i + 1) = transformedPoints[i].x;
+		pt(2, i + 1) = transformedPoints[i].y;
+	}
+	// PrintMatrixP(pt);
+
+	Matrix invPo = po.t() * (po * po.t()).i(); // Pseudo inverse
+	Matrix ptInvPo = pt * invPo;
+	// PrintMatrixP(ptInvPo);
+
+	// Convert 2D matrix into 1D for output
+	vector<double> out;
+	for (int i = 0; i < ptInvPo.Nrows(); i++)
+	{
+		for (int j = 0; j < ptInvPo.Ncols(); j++)
+		{
+			out.push_back(ptInvPo(i + 1, j + 1));
+		}
+	}
+	return out;
+}
+
+vector<double> PolyProjection::Estimate( Log* logger, const PolyProjectArgs::ProjType projType )
 {
 	if (originalPoints.size() != transformedPoints.size())
 		ThrowError<logic_error>("Inconsistent number of points in constraints", __LINE__, __FILE__);
 	if (originalPoints.size() == 0)
 		ThrowError<logic_error>("Cannot estimate transform with no points", __LINE__, __FILE__);
 	try
-	{
-
-		Matrix po((CoeffSize(order)), originalPoints.size());
-		for (unsigned int i = 0; i < originalPoints.size(); i++)
-		{
-
-			vector<double> coeff = GetCoeff(order, originalPoints[i].x, originalPoints[i].y);
-			for (unsigned int j = 0; j < coeff.size(); j++)
-			{
-				po(j + 1, i + 1) = coeff[j];
-			}
-		}
-		// PrintMatrixP(po);
-
-		Matrix pt(2, transformedPoints.size());
-		for (unsigned int i = 0; i < transformedPoints.size(); i++)
-		{
-			pt(1, i + 1) = transformedPoints[i].x;
-			pt(2, i + 1) = transformedPoints[i].y;
-		}
-		// PrintMatrixP(pt);
-
-		Matrix invPo = po.t() * (po * po.t()).i(); // Pseudo inverse
-		Matrix ptInvPo = pt * invPo;
-		// PrintMatrixP(ptInvPo);
-
-		// Convert 2D matrix into 1D for output
-		vector<double> out;
-		for (int i = 0; i < ptInvPo.Nrows(); i++)
-		{
-			for (int j = 0; j < ptInvPo.Ncols(); j++)
-			{
-				out.push_back(ptInvPo(i + 1, j + 1));
-			}
-		}
-
+	{		
 		// Project input to check for accuracy
+		vector<double> out = GetPose();
+
 		logger->Add( "Projection accuracy check" );
 		double totalError = 0.0, totalCount = 0.0;
 		for (unsigned int i = 0; i < originalPoints.size(); i++)
@@ -190,7 +189,15 @@ vector<double> PolyProjection::Estimate( Log* logger )
 			totalCount++;
 		}
 		stringstream summary;
-		summary << "Average pixel error " << totalError / totalCount << " units";
+		const double avgError = totalError / totalCount;
+		summary << "Average pixel error " << avgError << " units";
+		if( projType == PolyProjectArgs::ProjType::Mercator ) {
+			// Put the units in a nicer way
+			int degrees = round( avgError );
+			int minutes = round( ( avgError - degrees )* 60 );
+			int seconds = round( ( avgError - minutes )* 3600 );
+			summary << " " << degrees << "d," << minutes << "m," << seconds << "s";
+		}
 		logger->Add( summary.str() );
 
 		return out;
@@ -203,10 +210,9 @@ vector<double> PolyProjection::Estimate( Log* logger )
 	return empty;
 }
 
-const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType, class Tile &tile, void *userPtr)
+const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType, class Tile &tile, PolyProjectArgs* args)
 {
 	HelmertConverter converter;
-	class PolyProjectArgs *args = (class PolyProjectArgs *)userPtr;
 	double lat = 0.0, lon = 0.0, alt = 0.0;
 	int me = 0, mn = 0;
 	switch (projType)
@@ -262,11 +268,6 @@ const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType
 	}
 
 	Point pout = tile.Project(lat, lon);
-	// if(ref[0] >= 333000 && ref[1] <= 550000)
-	//{
-		// cout << "corner " << ref[0] << "," << ref[1] << "\t" << pout[0] << "," << pout[1] << endl;
-	//}
-
 	return pout;
 }
 
@@ -275,16 +276,8 @@ const Point PolyProjectWithPtr(const Point& in, void *userPtr)
 	class PolyProjectArgs *args = (class PolyProjectArgs *)userPtr;
 	const Point ref = PolyProject(in, args->imgToRefPoly, args->order);
 	if (!args->ptile)
-		throw(0);
-	/*double lat=0.0, lon=0.0, alt=0.0;
-	ConvertGbos1936ToWgs84(ref[0], ref[1],0.0, lat, lon, alt);
-	vector<double> pout;
-	//cout << args->ptile->latmin << "\t" << args->ptile->latmax << "\t" << args->ptile->sy << endl;
-
-	args->ptile->Project(lat, lon, pout);
-	//cout << ref[0] << "\t" << ref[1] << "\t" << pout[0] << "\t" << pout[1] << endl;
-	return pout;*/
-	return ProjRefToOutImg(ref, args->projType, *args->ptile, userPtr);
+		throw(0);	
+	return ProjRefToOutImg(ref, args->projType, *args->ptile, args);
 }
 
 void AddPointPoly(class Tile &tile, class PolyProjection &polyEst, double lat, double lon, double x, double y)

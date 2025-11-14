@@ -24,8 +24,8 @@ public:
 	virtual const string GetLastError() const;
 
 	// Pixel data
-	virtual double GetPix(int x, int y, unsigned int channel) const;
-	virtual void SetPix(int x, int y, unsigned int channel, double val);
+	virtual const CharPixelData GetPix(int x, int y, unsigned int channel) const;
+	virtual void SetPix(const int x, const int y, const unsigned int channel, const CharPixelData val);
 
 	// Meta data
 	virtual int GetWidth() const;
@@ -37,7 +37,7 @@ public:
 	virtual int SetNumChannels(int val);
 
 	virtual int GetInternalImageType() const;
-	virtual const void *GetInternalDataConst() const;
+	virtual const CharPixelData *GetInternalDataConst() const;
 
 	static void Init();
 	static void Term();

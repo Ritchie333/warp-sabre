@@ -13,6 +13,7 @@ public:
 	virtual ~Tile();
 	void Project(double lat, double lon, double &ixOut, double &iyOut);
 	const Point Project(double lat, double lon);
+	const Point Project( const Point& pt );
 	void UnProject(double x, double y, double &latOut, double &lonOut);
 };
 

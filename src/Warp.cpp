@@ -98,7 +98,7 @@ int Warp::Run()
 	}
 
 	pointDef.proj.order = polynomialOrder;
-	vector<double> poly = srcImgToRef.Estimate( logger );
+	vector<double> poly = srcImgToRef.Estimate( logger, projType );
 
 	double coordWidth = tile.lonmax - tile.lonmin;
 	double coordHeight = tile.latmax - tile.latmin;
@@ -126,14 +126,7 @@ int Warp::Run()
 		return 0;
 
 	class ImgMagick endImage( tile.sx, tile.sy );
-	endImage.Create();
-
-	// vector<double> test;
-	// test.push_back(333000);
-	// test.push_back(550000);
-	// vector<double> test2 = ProjRefToOutImg(test, tile);
-	// cout << test2[0] << "," << test2[1] << endl;
-	// exit(0);
+	endImage.Create();	
 
 	// Transform image
 	class ImageWarpByFunc imageWarpByFunc( srcImgToRef.transformedPoints.size() );
@@ -147,16 +140,16 @@ int Warp::Run()
 	imageWarpByFunc.Warp(img, endImage, PolyProjectWithPtr, (void *)&args);
 
 	if (visualiseErrors)
+		logger->Add( "Showing points on image...");
+		vector<double> pose = srcImgToRef.GetPose();
 		for (unsigned int i = 0; i < srcImgToRef.transformedPoints.size(); i++)
 		{
-			// unsigned char col[3] = {255,0,0};
-			// cout << polyEst.transformedPoints[i][0] << "," << polyEst.transformedPoints[i][1] << endl;
-			DrawCross(endImage, srcImgToRef.transformedPoints[i].x, srcImgToRef.transformedPoints[i].y, 255, 0, 0);
+			const Point& from = srcImgToRef.originalPoints[i];
+			const Point to = tile.Project(srcImgToRef.transformedPoints[i]);
 
-			// endImage.draw_circle(polyEst.transformedPoints[i][0],polyEst.transformedPoints[i][1],3,col);
-
-			// vector<double> proj = ProjRefToOutImg(polyEst.originalPoints[i], tile);
-			DrawCross(endImage, srcImgToRef.originalPoints[i].x, srcImgToRef.originalPoints[i].y, 0, 0, 255);
+			DrawCross(endImage, from.x, from.y, 255, 0, 0);
+			
+			DrawCross(endImage, to.x, to.y, 0, 0, 255);
 		}
 
 	logger->Add( "Saving image..." );

@@ -125,21 +125,21 @@ const string ImgMagick::GetLastError() const
 }
 
 // Pixel data
-double ImgMagick::GetPix(int x, int y, unsigned int channel) const
+const CharPixelData ImgMagick::GetPix(int x, int y, unsigned int channel) const
 {
-	const long off = channel + x * channels + y * channels * width;
+	const long off = channel + (x * channels) + (y * channels * width);
 	if( off < width * height * channels ) {
-		return raw[channel + x * channels + y * channels * width];
+		return raw[off];
 	} else {
 		return 0;
 	}
 }
 
-void ImgMagick::SetPix(int x, int y, unsigned int channel, double val)
+void ImgMagick::SetPix(int x, int y, unsigned int channel, CharPixelData val)
 {
-	const long off = channel + x * channels + y * channels * width;
+	const long off = channel + (x * channels) + (y * channels * width);
 	if( off < width * height * channels ) {
-		raw[channel + x * channels + y * channels * width] = (char)(val + 0.5);
+		raw[off] = val;
 	}
 }
 
@@ -187,7 +187,7 @@ int ImgMagick::GetInternalImageType() const
 	return IMG_FRAME_TYPE_MAGICKWAND;
 }
 
-const void *ImgMagick::GetInternalDataConst() const
+const CharPixelData *ImgMagick::GetInternalDataConst() const
 {
 	return raw;
 }

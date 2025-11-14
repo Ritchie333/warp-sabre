@@ -29,6 +29,11 @@ const Point Tile::Project(double lat, double lon)
 	return Point( ix, iy );
 }
 
+const Point Tile::Project(const Point& pt)
+{
+	return Project( pt.y, pt.x);
+}
+
 void Tile::UnProject(double x, double y, double &latOut, double &lonOut)
 {
 	latOut = ((double)sy - y) * (latmax - latmin) / (double)sy + latmin;

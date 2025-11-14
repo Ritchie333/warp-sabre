@@ -459,7 +459,7 @@ bool CopyPixels::CopyTile(const class ImgMagick &imageIn, class ImgMagick &image
 {
 	double lat, lon;
 	tile.UnProject(i, j, lat, lon);
-	double val = imageIn.GetPix(i, j, k);
+	const CharPixelData val = imageIn.GetPix(i, j, k);
 	bool inMask = this->CheckIfInBox(lat, lon);
 	if (inMask)
 	{
@@ -497,7 +497,7 @@ void CopyPixels::Copy(const class ImgMagick &imageIn, class ImgMagick &imageOut,
 			for (int j = 0; j < height; j++)
 				for (int k = 0; k < chans; k++)
 				{
-					double val = imageIn.GetPix(i, j, k);
+					CharPixelData val = imageIn.GetPix(i, j, k);
 					if (!merge || val)
 					{
 						imageOut.SetPix(i, j, k, val);

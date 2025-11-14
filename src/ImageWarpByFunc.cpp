@@ -30,10 +30,10 @@ int ImageWarpByFunc::Warp(class ImgMagick &in,
 						  void *userPtr)
 {
 	// cout << "Creating raw image buffer" << endl;
-	unsigned char *inBuf = (unsigned char *)in.GetInternalDataConst();
+	const CharPixelData *inBuf = (unsigned char *)in.GetInternalDataConst();
 
 	// cout << "Creating raw image buffer" << endl;
-	unsigned char *outBuf = (unsigned char *)out.GetInternalDataConst();
+	CharPixelData *outBuf = const_cast<CharPixelData*>(out.GetInternalDataConst());
 
 	// Calculate mesh transform
 	double sxmin = -0.0 * (double)in.GetWidth();

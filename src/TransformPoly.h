@@ -15,25 +15,6 @@ Point PolyProject(const Point& point, vector<double> pose, int order);
 int CoeffSize(int order);
 int CalcOrderFitForNumConstraints(int numConstr);
 
-class PolyProjection
-{
-public:
-	PolyProjection();
-	virtual ~PolyProjection();
-
-	// vector<double> Project(vector<double> point, vector<double>pose) {vector<double> empty; return empty;};
-	// vector<double> UnProject(vector<double> point, vector<double>pose) {vector<double> empty; return empty;};
-
-	void Clear();
-	void AddPoint(const Point& original, const Point& transformed);
-	void AddPoint(double ox, double oy, double tx, double ty);
-	void AddPoint(double ox, double oy, const Point& transformed);
-	vector<double> Estimate( Log* logger);
-
-	vector<Point> originalPoints, transformedPoints;
-	int order;
-};
-
 class PolyProjectArgs
 {
 public:
@@ -66,7 +47,27 @@ public:
 	}
 };
 
-const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType, class Tile &tile, void *userPtr);
+class PolyProjection
+{
+public:
+	PolyProjection();
+	virtual ~PolyProjection();
+
+	// vector<double> Project(vector<double> point, vector<double>pose) {vector<double> empty; return empty;};
+	// vector<double> UnProject(vector<double> point, vector<double>pose) {vector<double> empty; return empty;};
+
+	void Clear();
+	void AddPoint(const Point& original, const Point& transformed);
+	void AddPoint(double ox, double oy, double tx, double ty);
+	void AddPoint(double ox, double oy, const Point& transformed);
+	vector<double> Estimate( Log* logger, const PolyProjectArgs::ProjType projType);
+	vector<double> GetPose();
+
+	vector<Point> originalPoints, transformedPoints;
+	int order;
+};
+
+const Point ProjRefToOutImg(const Point& ref, PolyProjectArgs::ProjType projType, class Tile &tile, PolyProjectArgs* args);
 const Point PolyProjectWithPtr(const Point& in, void *userPtr);
 void AddPointPoly(class Tile &tile, class PolyProjection &polyEst, double lat, double lon, double x, double y);
 void SplitGbosRef(string in, string &zone, long &easting, long &northing);
