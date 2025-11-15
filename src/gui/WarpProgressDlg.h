@@ -28,6 +28,7 @@ public:
     virtual ~WarpProgressDialog();
 private:
     wxTextCtrl* _output;
+    wxButton* _close;
     Warp& _warp;
     WarpThread* _warpThread;
 

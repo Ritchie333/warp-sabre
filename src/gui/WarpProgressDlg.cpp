@@ -18,11 +18,21 @@ WarpProgressDialog::WarpProgressDialog( wxWindow* parent, int id, Warp& warp ) :
     _output = new wxTextCtrl( this, wxID_ANY, wxEmptyString,
         wxDefaultPosition, wxSize( TEXT_WIDTH, TEXT_HEIGHT ), wxTE_MULTILINE | wxHSCROLL );
     topSizer->Add( _output, 0, wxEXPAND | wxALL );
+    topSizer->AddStretchSpacer(1);
 
-    wxButton *close = new wxButton( this, wxID_CLOSE, _( "Close" ) );
-    topSizer->Add( close );
+    _close = new wxButton( this, wxID_CLOSE, _( "Close" ) );
+    topSizer->Add( _close );
 
     SetSizerAndFit( topSizer );
+    Bind(wxEVT_SIZE, [=](wxSizeEvent &event) {
+        wxSize dlgSize = event.GetSize();
+        wxSize closeSize = _close->GetSize();
+        const int off = dlgSize.y - closeSize.y - 32;
+        wxPoint closePos( 0, off );
+        wxSize ctrlSize( dlgSize.x, off);
+        _output->SetSize(ctrlSize);
+        _close->SetPosition(closePos);
+    });
 }
 
 WarpProgressDialog::~WarpProgressDialog()
