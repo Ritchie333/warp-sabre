@@ -34,9 +34,15 @@ void CalibrationFile::ReadProjection()
 		class DelimitedFileLine &line = lines[i];
 		// cout << line.NumVals() << endl;
 
+		const char* text = line[0].GetVals();
+
+		if( text == nullptr ) continue;
+
+		if( text[0] == '#' ) continue;	// Ignore comments
+
 		if (line.NumVals() == 5)
 		{
-			if (strcmp(line[0].GetVals(), "p") == 0)
+			if (strcmp(text, "p") == 0)
 			{
 				double imgX = line[3].GetVald();
 				double imgY = line[4].GetVald();
@@ -62,7 +68,7 @@ void CalibrationFile::ReadProjection()
 
 				setBox = 1;
 			}
-			if (strcmp(line[0].GetVals(), "g") == 0)	// French maps are in grads
+			if (strcmp(text, "g") == 0)	// French maps are in grads
 			{
 				double imgX = line[3].GetVald();
 				double imgY = line[4].GetVald();
@@ -98,14 +104,14 @@ void CalibrationFile::ReadProjection()
 			double lat = -1.0, lon = -1.0, alt = -1.0;
 			double imgX = line[2].GetVald();
 			double imgY = line[3].GetVald();
-			if (strcmp(line[0].GetVals(), "os") == 0)
+			if (strcmp(text, "os") == 0)
 			{
 				string mapref = line[1].GetVals();
 				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
 				// Add point to transform constraints
 				converter.ConvertGbos1936ToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "osy") == 0)
+			if (strcmp(text, "osy") == 0)
 			{
 				string mapref = line[1].GetVals();
 				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
@@ -114,19 +120,19 @@ void CalibrationFile::ReadProjection()
 				// Add point to transform constraints
 				converter.ConvertGbos1936ToWgs84(me, mn, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "osi") == 0)
+			if (strcmp(text, "osi") == 0)
 			{
 				string mapref = line[1].GetVals();
 				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
 				converter.ConvertOsiToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "wo") == 0)
+			if (strcmp(text, "wo") == 0)
 			{
 				string mapref = line[1].GetVals();
 				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
 				converter.ConvertWOToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "woi") == 0)
+			if (strcmp(text, "woi") == 0)
 			{
 				string mapref = line[1].GetVals();
 				sscanf(mapref.c_str(), "%d:%d", &dEasting, &dNorthing);
@@ -172,60 +178,60 @@ void CalibrationFile::ReadProjection()
 			double imgX = line[3].GetVald();
 			double imgY = line[4].GetVald();
 			double lat = -1.0, lon = -1.0, alt = -1.0;
-			if (strcmp(line[0].GetVals(), "gbos1936") == 0)
+			if (strcmp(text, "gbos1936") == 0)
 			{
 				dEasting = line[1].GetVald();
 				dNorthing = line[2].GetVald();
 
 				converter.ConvertGbos1936ToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "osi") == 0)
+			if (strcmp(text, "osi") == 0)
 			{
 				dEasting = line[1].GetVald();
 				dNorthing = line[2].GetVald();
 
 				converter.ConvertOsiToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "wo") == 0)
+			if (strcmp(text, "wo") == 0)
 			{
 				dEasting = line[1].GetVald();
 				dNorthing = line[2].GetVald();
 
 				converter.ConvertWOToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "woi") == 0)
+			if (strcmp(text, "woi") == 0)
 			{
 				dEasting = line[1].GetVald();
 				dNorthing = line[2].GetVald();
 
 				converter.ConvertWOIToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "wp") == 0)
+			if (strcmp(text, "wp") == 0)
 			{
 				dEasting = line[1].GetVald();
 				dNorthing = line[2].GetVald();
 
 				converter.ConvertWOToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "cas") == 0)
+			if (strcmp(text, "cas") == 0)
 			{
 				dEasting = line[1].GetVald();
 				dNorthing = line[2].GetVald();
 				converter.ConvertCasToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "bns") == 0)
+			if (strcmp(text, "bns") == 0)
 			{
 				dEasting = line[1].GetVald();
 				dNorthing = line[2].GetVald();
 				converter.ConvertBnSToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "bni") == 0)
+			if (strcmp(text, "bni") == 0)
 			{
 				dEasting = line[1].GetVald();
 				dNorthing = line[2].GetVald();
 				converter.ConvertBnIToWgs84(dEasting, dNorthing, 0.0, lat, lon, alt);
 			}
-			if (strcmp(line[0].GetVals(), "bnf") == 0)
+			if (strcmp(text, "bnf") == 0)
 			{
 				dEasting = line[1].GetVald();
 				dNorthing = line[2].GetVald();
@@ -279,7 +285,7 @@ void CalibrationFile::ReadProjection()
 			double imgX = line[4].GetVald();
 			double imgY = line[5].GetVald();
 			double lat = -1.0, lon = -1.0;
-			if (strcmp(line[0].GetVals(), "utm") == 0)
+			if (strcmp(text, "utm") == 0)
 			{
 				zone = line[1].GetVali();
 				dEasting = line[2].GetVald();
