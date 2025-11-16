@@ -139,7 +139,7 @@ int Warp::Run()
 	logger->Add( "Warping image..." );
 	imageWarpByFunc.Warp(img, endImage, PolyProjectWithPtr, (void *)&args);
 
-	if (visualiseErrors)
+	if (visualiseErrors) {
 		logger->Add( "Showing points on image...");
 		vector<double> pose = srcImgToRef.GetPose();
 		for (unsigned int i = 0; i < srcImgToRef.transformedPoints.size(); i++)
@@ -151,6 +151,7 @@ int Warp::Run()
 			
 			DrawCross(endImage, to.x, to.y, 0, 0, 255);
 		}
+	}
 
 	logger->Add( "Saving image..." );
 	string mapOutFilename = outputFilename + ".jpg";

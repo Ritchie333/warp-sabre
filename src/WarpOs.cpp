@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
 	class Warp warp;
 	class Log logger;
 	warp.logger = &logger;
+	warp.visualiseErrors = false;
 	string outproj = "mercator";
 	string inproj = "gbos";
 
